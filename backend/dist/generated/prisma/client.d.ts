@@ -1,0 +1,16 @@
+import * as runtime from "@prisma/client/runtime/client";
+import * as $Class from "./internal/class.js";
+import * as Prisma from "./internal/prismaNamespace.js";
+export * as $Enums from './enums.js';
+export * from "./enums.js";
+export declare const PrismaClient: $Class.PrismaClientConstructor;
+export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts extends Prisma.PrismaClientOptions["omit"] = Prisma.PrismaClientOptions["omit"], ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>;
+export { Prisma };
+export type User = Prisma.UserModel;
+export type Deal = Prisma.DealModel;
+export type Investment = Prisma.InvestmentModel;
+export type Asset = Prisma.AssetModel;
+export type Entity = Prisma.EntityModel;
+export type Identity = Prisma.IdentityModel;
+export type LedgerEntry = Prisma.LedgerEntryModel;
+export type Fee = Prisma.FeeModel;

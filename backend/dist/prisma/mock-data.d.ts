@@ -1,0 +1,33 @@
+import type { User, Deal, Investment, Asset, Entity, Identity, NewsArticle, FileItem, Notification, LedgerEntry, Fee } from './types';
+export declare const currentUser: User;
+export declare const deals: Deal[];
+export declare const investments: Investment[];
+export declare const assets: Asset[];
+export declare const entities: Entity[];
+export declare const identities: Identity[];
+export declare const newsArticles: NewsArticle[];
+export declare const featuredCompanies: ({
+    id: string;
+    name: string;
+    description: string;
+    logo: string;
+    tags: string[];
+    investors: string[];
+    highlight: string;
+    badge: string;
+    badgeType: "warning";
+} | {
+    id: string;
+    name: string;
+    description: string;
+    logo: string;
+    tags: string[];
+    investors: string[];
+    highlight: string;
+    badge: string;
+    badgeType: "info";
+})[];
+export declare const files: FileItem[];
+export declare const notifications: Notification[];
+export declare const ledgerEntries: LedgerEntry[];
+export declare const fees: Fee[];
