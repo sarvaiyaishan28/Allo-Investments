@@ -73,15 +73,17 @@ function formatDate(dateString: string): string {
 }
 
 function getStatusConfig(status: InvestmentStatus) {
-  const config: Record<InvestmentStatus, { label: string; className: string; icon: React.ElementType }> = {
+  const config: Record<string, { label: string; className: string; icon: React.ElementType }> = {
     invited: { label: 'Invited', className: 'bg-muted text-muted-foreground', icon: Clock },
     viewed: { label: 'Viewed', className: 'bg-accent/20 text-accent-foreground', icon: Clock },
+    committed: { label: 'Committed', className: 'bg-primary/10 text-primary', icon: CheckCircle2 },
     signed: { label: 'Signed', className: 'bg-primary/10 text-primary', icon: CheckCircle2 },
     wired: { label: 'Wired', className: 'bg-success/10 text-success', icon: CheckCircle2 },
     complete: { label: 'Complete', className: 'bg-success/10 text-success', icon: CheckCircle2 },
+    completed: { label: 'Completed', className: 'bg-success/10 text-success', icon: CheckCircle2 },
     declined: { label: 'Declined', className: 'bg-destructive/10 text-destructive', icon: AlertCircle },
   }
-  return config[status]
+  return config[status] || { label: status, className: 'bg-muted text-muted-foreground', icon: Clock }
 }
 
 const statusFilters: { id: InvestmentStatus | 'all'; label: string }[] = [

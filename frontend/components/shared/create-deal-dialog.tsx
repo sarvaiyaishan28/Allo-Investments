@@ -29,6 +29,9 @@ import {
 } from '@/components/ui/select'
 import { identities } from '@/lib/mock-data'
 
+import { createDeal } from '@/lib/api-client'
+import { useAuth } from '@/components/providers/auth-provider'
+
 interface CreateDealDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -36,6 +39,7 @@ interface CreateDealDialogProps {
 
 export function CreateDealDialog({ open, onOpenChange }: CreateDealDialogProps) {
   const router = useRouter()
+  const { user } = useAuth()
   
   const [dealType, setDealType] = React.useState('spv')
   const [dealName, setDealName] = React.useState('')
@@ -52,18 +56,42 @@ export function CreateDealDialog({ open, onOpenChange }: CreateDealDialogProps) 
     }
   }, [open])
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!dealName.trim()) return
     setIsSubmitting(true)
     
-    // Generate a new ID and push to the admin page
-    // Using a timeout to simulate a brief loading state
-    setTimeout(() => {
+    try {
+      const selectedIdentity = identities.find(i => i.id === identityId)
+      
+      const payload = {
+        id: crypto.randomUUID(),
+        name: dealName,
+        type: dealType,
+        status: 'draft',
+        productType: dealType === 'fund' ? 'fund' : 'standard_spv',
+        entityName: selectedIdentity?.name || 'New Entity LLC',
+        managementFee: 0,
+        carry: 0,
+        targetRaise: 0,
+        minimumInvestment: 0,
+        totalSigned: 0,
+        totalWired: 0,
+        investorCount: 0,
+        estimatedClosingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        offeringType: '506b',
+        fundManagerId: user?.id || 'admin-user-id',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      
+      const newDeal = await createDeal(payload)
       onOpenChange(false)
-      const newDealId = `deal_new_${Date.now()}`
-      // Update the mock data or just pass via query string? The page handles deal_new_ ids.
-      router.push(`/deals/${newDealId}/admin`)
-    }, 500)
+      // Redirect to the newly created deal page (or admin page)
+      router.push(`/deals/${newDeal.id}/admin`)
+    } catch (error) {
+      console.error('Failed to create deal:', error)
+      setIsSubmitting(false)
+    }
   }
 
   return (

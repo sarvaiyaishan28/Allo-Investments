@@ -52,6 +52,12 @@ const statusConfig = {
   Inactive: { color: "bg-muted text-muted-foreground border-border", icon: AlertCircle },
 }
 
+const getEntityStatusConfig = (status: string) => {
+  if (!status) return statusConfig.Pending;
+  const normalized = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  return statusConfig[normalized as keyof typeof statusConfig] || statusConfig.Pending;
+}
+
 export function EntitiesPage() {
   const [entities, setEntities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -304,7 +310,8 @@ export function EntitiesPage() {
         </TableHeader>
         <TableBody>
           {filteredEntities.map((entity) => {
-            const StatusIcon = statusConfig[entity.status].icon
+            const config = getEntityStatusConfig(entity.status)
+            const StatusIcon = config.icon
             return (
               <TableRow key={entity.id} className="cursor-pointer hover:bg-muted/50">
                 <TableCell>
@@ -318,9 +325,9 @@ export function EntitiesPage() {
                 <TableCell className="text-muted-foreground uppercase">{entity.type}</TableCell>
                 <TableCell className="text-muted-foreground">{entity.state}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={statusConfig["Active"].color}>
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Active
+                  <Badge variant="outline" className={config.color}>
+                    <StatusIcon className="mr-1 h-3 w-3" />
+                    {entity.status ? entity.status.charAt(0).toUpperCase() + entity.status.slice(1).toLowerCase() : "Pending"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground font-mono text-xs">
@@ -369,7 +376,8 @@ export function EntitiesPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {filteredEntities.map((entity, index) => {
-            const StatusIcon = statusConfig[entity.status].icon
+            const config = getEntityStatusConfig(entity.status)
+            const StatusIcon = config.icon
             return (
               <motion.div
                 key={entity.id}
@@ -423,9 +431,9 @@ export function EntitiesPage() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className={statusConfig["Active"].color}>
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Active
+                      <Badge variant="outline" className={config.color}>
+                        <StatusIcon className="mr-1 h-3 w-3" />
+                        {entity.status ? entity.status.charAt(0).toUpperCase() + entity.status.slice(1).toLowerCase() : "Pending"}
                       </Badge>
                       {entity.ein && (
                         <Badge variant="secondary" className="font-mono text-xs">

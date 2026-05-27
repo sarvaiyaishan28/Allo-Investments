@@ -13,7 +13,8 @@ export default async function Page({ params }: PageProps) {
   
   if (!deal) {
     try {
-      const res = await fetch(`http://localhost:3001/deals/${id}`, { cache: 'no-store' })
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
+      const res = await fetch(`${baseUrl}/deals/${id}`, { cache: 'no-store' })
       if (res.ok) {
         deal = await res.json()
       }

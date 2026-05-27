@@ -6,6 +6,16 @@ export async function fetchDeals() {
   return res.json();
 }
 
+export async function createDeal(dealData: any) {
+  const res = await fetch(`${API_BASE}/deals`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dealData),
+  });
+  if (!res.ok) throw new Error('Failed to create deal');
+  return res.json();
+}
+
 export async function fetchInvestments() {
   const res = await fetch(`${API_BASE}/investments`);
   if (!res.ok) throw new Error('Failed to fetch investments');

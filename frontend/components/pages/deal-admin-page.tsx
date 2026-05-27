@@ -861,7 +861,8 @@ export function DealAdminPage({ deal: initialDeal }: DealAdminPageProps) {
     setDeal(prev => ({ ...prev, ...updates }))
     try {
       if (!deal.id.startsWith('deal_')) {
-        await fetch(`http://localhost:3001/deals/${deal.id}`, {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
+        const res = await fetch(`${baseUrl}/deals/${deal.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates)
@@ -894,7 +895,8 @@ export function DealAdminPage({ deal: initialDeal }: DealAdminPageProps) {
     setIsSubmitting(true)
     try {
       if (!deal.id.startsWith('deal_')) {
-        const res = await fetch(`http://localhost:3001/deals/${deal.id}`, {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
+        const res = await fetch(`${baseUrl}/deals/${deal.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'submitted' })
