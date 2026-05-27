@@ -21,7 +21,7 @@ Follow these steps to run the project locally.
 ### 1. Database Setup
 
 1. Create a project in [Supabase](https://supabase.com/).
-2. In the `backend` directory, rename or create a `.env` file and add your Supabase database connection string (which can be found in your Supabase project under Project Settings -> Database -> Connection string):
+2. In the `backend` directory, copy the `.env.example` file to create your own `.env` file, and add your Supabase database connection string (which can be found in your Supabase project under Project Settings -> Database -> Connection string):
    ```env
    # Connect to Supabase via connection pooling with Supavisor.
    DATABASE_URL="postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
@@ -63,6 +63,11 @@ Open a new terminal and navigate to the frontend directory:
 ```bash
 cd frontend
 npm install
+```
+
+Copy the `.env.example` file to create your own `.env` file to ensure the API URL is configured correctly (it defaults to `http://localhost:3001/api`):
+```bash
+cp .env.example .env
 ```
 
 Start the frontend development server:
