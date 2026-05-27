@@ -228,7 +228,7 @@ export function HomePage() {
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
               {/* Colored Glow Shadow */}
               <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-orange-500/30 dark:bg-orange-500/20 blur-xl rounded-full" />
-              <Image src="/images/entity-formation.png" width={220} height={220} alt="Entity Formation" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+              <Image src="/images/entity-formation.png" width={220} height={220} alt="Entity Formation" className="object-contain mr-[-10px] relative z-10 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180 dark:opacity-90 dark:brightness-110" />
             </div>
           </CardContent>
         </Card>
@@ -251,7 +251,7 @@ export function HomePage() {
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
               {/* Colored Glow Shadow */}
               <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-blue-500/30 dark:bg-blue-500/20 blur-xl rounded-full" />
-              <Image src="/images/deal-syndication.png" width={220} height={220} alt="Deal Syndication" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+              <Image src="/images/deal-syndication.png" width={220} height={220} alt="Deal Syndication" className="object-contain mr-[-10px] relative z-10 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180 dark:opacity-90 dark:brightness-110" />
             </div>
           </CardContent>
         </Card>
@@ -274,7 +274,7 @@ export function HomePage() {
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
               {/* Colored Glow Shadow */}
               <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-emerald-500/30 dark:bg-emerald-500/20 blur-xl rounded-full" />
-              <Image src="/images/portfolio-tracking.png" width={220} height={220} alt="Portfolio Tracking" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+              <Image src="/images/portfolio-tracking.png" width={220} height={220} alt="Portfolio Tracking" className="object-contain mr-[-10px] relative z-10 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180 dark:opacity-90 dark:brightness-110" />
             </div>
           </CardContent>
         </Card>

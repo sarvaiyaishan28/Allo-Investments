@@ -16,6 +16,9 @@ import {
   Building2,
   Users,
   Plus,
+  Calendar,
+  Asterisk,
+  Activity,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -74,39 +77,36 @@ function formatDate(dateString: string): string {
 
 function HeroBanner() {
   return (
-    <div className="relative overflow-hidden rounded-2xl mb-8 p-8 border border-border/50 bg-gradient-to-br from-background via-background to-muted">
+    <div className="relative overflow-hidden rounded-2xl mb-8 px-8 py-2 md:py-0 border border-border/50 bg-[#fafafa] dark:bg-zinc-950">
       {/* Decorative gradient background elements */}
-      <div className="absolute inset-0 opacity-30 dark:opacity-40 mix-blend-screen pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-500/30 rounded-full blur-3xl" />
-        <div className="absolute top-12 right-48 w-72 h-72 bg-rose-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 right-12 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl" />
+      <div className="absolute inset-0 opacity-50 dark:opacity-20 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent -translate-y-1/2 translate-x-1/4 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/5 via-transparent to-transparent translate-y-1/4 -translate-x-1/4 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-        <div className="max-w-xl">
-          <Badge variant="outline" className="mb-4 text-[10px] font-bold tracking-wider text-amber-500 border-amber-500/30 bg-amber-500/10 uppercase">
-            Q2 • 2026 DROP
-          </Badge>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
-            Three frontier deals,<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-rose-500">
-              one allocation window.
+      <div className="relative flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-xl flex-1 py-6 md:py-8">
+          <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight mb-3 leading-[1.15] text-zinc-900 dark:text-zinc-50">
+            Exclusive private market access,<br />
+            <span className="text-[#f15a24] dark:text-[#f15a24]">
+              built for modern investors.
             </span>
           </h1>
-          <p className="text-muted-foreground flex items-center gap-2">
-            Invest in pre-IPO stocks using
-            <Badge variant="secondary" className="text-xs font-semibold">RWA</Badge>
+          <p className="text-muted-foreground text-base mb-0 leading-relaxed max-w-[400px]">
+            Discover curated pre-IPO opportunities<br />with institutional-grade access.
           </p>
         </div>
 
-        {/* Mock Logos for Hero */}
-        <div className="flex flex-col items-end gap-3 hidden sm:flex">
-          <div className="flex items-center -space-x-3">
-            <div className="size-12 rounded-full border-2 border-background bg-zinc-900 text-white flex items-center justify-center font-bold z-30 shadow-lg">FA</div>
-            <div className="size-12 rounded-full border-2 border-background bg-orange-600 text-white flex items-center justify-center font-bold z-20 shadow-lg">AN</div>
-            <div className="size-12 rounded-full border-2 border-background bg-blue-600 text-white flex items-center justify-center font-bold z-10 shadow-lg">NL</div>
+        {/* Illustration Section */}
+        <div className="flex-1 flex items-center justify-center md:justify-end w-full">
+          {/* Glowing Cube Image */}
+          <div className="-my-8 md:-my-12">
+             <img 
+               src="/images/glowing_cube.png" 
+               alt="Glowing Cube" 
+               className="w-[220px] md:w-[320px] max-w-none h-auto object-contain pointer-events-none mix-blend-multiply brightness-110 contrast-125 dark:mix-blend-screen dark:invert dark:hue-rotate-180 dark:opacity-90 dark:brightness-110 dark:contrast-100" 
+             />
           </div>
-          <p className="text-xs text-muted-foreground font-medium">Figure AI • Anthropic • Neuralink</p>
         </div>
       </div>
     </div>
@@ -221,7 +221,7 @@ export function DealsPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [selectedType, setSelectedType] = React.useState<string>('all')
   const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('grid')
-  const [ownershipFilter, setOwnershipFilter] = React.useState<'my_deals' | 'discover'>('my_deals')
+  const [ownershipFilter, setOwnershipFilter] = React.useState<'my_deals' | 'discover'>('discover')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
 
   const { requireAuth, user, isAuthenticated } = useAuth()

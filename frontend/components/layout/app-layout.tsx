@@ -64,6 +64,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+import { toast } from 'sonner'
+
 // Navigation items
 const mainNavItems = [
   { title: 'Dashboard', href: '/', icon: Home },
@@ -91,18 +93,37 @@ const supportNavItems = [
   { title: 'Help', href: '/help', icon: HelpCircle },
 ]
 
+const comingSoonRoutes = ['/investments', '/assets', '/entities', '/identities', '/ledger', '/fees', '/documents']
+
 function NavLink({ 
   item, 
   isActive,
   collapsed,
+  onClick,
 }: { 
   item: { title: string; href: string; icon: React.ElementType }
   isActive: boolean
   collapsed: boolean
+  onClick?: () => void
 }) {
+  const isComingSoon = comingSoonRoutes.includes(item.href)
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isComingSoon) {
+      e.preventDefault()
+      toast('Coming Soon', {
+        description: `${item.title} feature is currently under development.`,
+      })
+    }
+    if (onClick) {
+      onClick()
+    }
+  }
+
   const content = (
     <Link
       href={item.href}
+      onClick={handleClick}
       className={cn(
         'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
         collapsed && 'justify-center px-2',
@@ -444,7 +465,14 @@ function MobileHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      if (comingSoonRoutes.includes(item.href)) {
+                        e.preventDefault()
+                        toast('Coming Soon', { description: `${item.title} feature is currently under development.` })
+                      } else {
+                        setOpen(false)
+                      }
+                    }}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                       pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
@@ -467,7 +495,14 @@ function MobileHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      if (comingSoonRoutes.includes(item.href)) {
+                        e.preventDefault()
+                        toast('Coming Soon', { description: `${item.title} feature is currently under development.` })
+                      } else {
+                        setOpen(false)
+                      }
+                    }}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                       pathname === item.href || pathname.startsWith(item.href)
@@ -490,7 +525,14 @@ function MobileHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      if (comingSoonRoutes.includes(item.href)) {
+                        e.preventDefault()
+                        toast('Coming Soon', { description: `${item.title} feature is currently under development.` })
+                      } else {
+                        setOpen(false)
+                      }
+                    }}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                       pathname === item.href || pathname.startsWith(item.href)
