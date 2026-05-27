@@ -42,7 +42,7 @@ export interface Deal {
 }
 
 // Investment Types
-export type InvestmentStatus = 'invited' | 'viewed' | 'completed' | 'signed' | 'committed'
+export type InvestmentStatus = 'invited' | 'viewed' | 'completed' | 'signed' | 'committed' | 'wired' | 'complete' | 'declined'
 export type KYCStatus = 'not_run' | 'pending' | 'approved' | 'needs_review' | 'rejected'
 export type InvestorType = 'individual' | 'entity'
 

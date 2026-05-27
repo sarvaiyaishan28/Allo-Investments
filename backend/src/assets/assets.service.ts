@@ -1,21 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class AssetsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async findAll() {
-    return this.prisma.asset.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const { data, error } = await this.supabase.client.from('Asset').select('*').order('createdAt', { ascending: false });
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
   }
 
   async findOne(id: string) {
-    const record = await this.prisma.asset.findUnique({
-      where: { id },
-    });
-    if (!record) throw new NotFoundException(`Record with ID ${id} not found`);
-    return record;
+    const { data, error } = await this.supabase.client.from('Asset').select('*').eq('id', id).single();
+    if (error) {
+      if (error.code === 'PGRST116') throw new NotFoundException(`Record with ID ${id} not found`);
+      throw new InternalServerErrorException(error.message);
+    }
+    return data;
   }
 }

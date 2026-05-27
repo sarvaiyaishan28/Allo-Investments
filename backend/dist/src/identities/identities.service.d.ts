@@ -1,25 +1,7 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 export declare class IdentitiesService {
-    private prisma;
-    constructor(prisma: PrismaService);
-    findAll(): Promise<{
-        id: string;
-        email: string;
-        name: string;
-        createdAt: Date;
-        type: string;
-        phone: string | null;
-        accreditationStatus: string;
-        kycStatus: string;
-    }[]>;
-    findOne(id: string): Promise<{
-        id: string;
-        email: string;
-        name: string;
-        createdAt: Date;
-        type: string;
-        phone: string | null;
-        accreditationStatus: string;
-        kycStatus: string;
-    }>;
+    private supabase;
+    constructor(supabase: SupabaseService);
+    findAll(): Promise<any[]>;
+    findOne(id: string): Promise<any>;
 }

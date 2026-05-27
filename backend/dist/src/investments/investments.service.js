@@ -11,29 +11,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvestmentsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
+const supabase_service_1 = require("../supabase/supabase.service");
 let InvestmentsService = class InvestmentsService {
-    prisma;
-    constructor(prisma) {
-        this.prisma = prisma;
+    supabase;
+    constructor(supabase) {
+        this.supabase = supabase;
     }
     async findAll() {
-        return this.prisma.investment.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
+        const { data, error } = await this.supabase.client.from('Investment').select('*').order('createdAt', { ascending: false });
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return data;
     }
     async findOne(id) {
-        const record = await this.prisma.investment.findUnique({
-            where: { id },
-        });
-        if (!record)
-            throw new common_1.NotFoundException(`Record with ID ${id} not found`);
-        return record;
+        const { data, error } = await this.supabase.client.from('Investment').select('*').eq('id', id).single();
+        if (error) {
+            if (error.code === 'PGRST116')
+                throw new common_1.NotFoundException(`Record with ID ${id} not found`);
+            throw new common_1.InternalServerErrorException(error.message);
+        }
+        return data;
     }
 };
 exports.InvestmentsService = InvestmentsService;
 exports.InvestmentsService = InvestmentsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService])
 ], InvestmentsService);
 //# sourceMappingURL=investments.service.js.map

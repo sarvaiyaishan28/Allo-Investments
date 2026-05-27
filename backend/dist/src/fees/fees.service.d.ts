@@ -1,29 +1,7 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 export declare class FeesService {
-    private prisma;
-    constructor(prisma: PrismaService);
-    findAll(): Promise<{
-        paidDate: Date | null;
-        id: string;
-        createdAt: Date;
-        type: string;
-        status: string;
-        dealName: string;
-        dealId: string;
-        description: string;
-        amount: number;
-        dueDate: Date;
-    }[]>;
-    findOne(id: string): Promise<{
-        paidDate: Date | null;
-        id: string;
-        createdAt: Date;
-        type: string;
-        status: string;
-        dealName: string;
-        dealId: string;
-        description: string;
-        amount: number;
-        dueDate: Date;
-    }>;
+    private supabase;
+    constructor(supabase: SupabaseService);
+    findAll(): Promise<any[]>;
+    findOne(id: string): Promise<any>;
 }

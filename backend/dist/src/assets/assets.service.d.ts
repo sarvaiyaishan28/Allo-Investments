@@ -1,29 +1,7 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 export declare class AssetsService {
-    private prisma;
-    constructor(prisma: PrismaService);
-    findAll(): Promise<{
-        industry: string | null;
-        id: string;
-        createdAt: Date;
-        legalName: string;
-        type: string;
-        location: string;
-        securityType: string;
-        totalShares: number | null;
-        sharePrice: number | null;
-        filesCount: number;
-    }[]>;
-    findOne(id: string): Promise<{
-        industry: string | null;
-        id: string;
-        createdAt: Date;
-        legalName: string;
-        type: string;
-        location: string;
-        securityType: string;
-        totalShares: number | null;
-        sharePrice: number | null;
-        filesCount: number;
-    }>;
+    private supabase;
+    constructor(supabase: SupabaseService);
+    findAll(): Promise<any[]>;
+    findOne(id: string): Promise<any>;
 }

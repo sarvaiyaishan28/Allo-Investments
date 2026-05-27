@@ -11,48 +11,53 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DealsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
+const supabase_service_1 = require("../supabase/supabase.service");
 let DealsService = class DealsService {
-    prisma;
-    constructor(prisma) {
-        this.prisma = prisma;
+    supabase;
+    constructor(supabase) {
+        this.supabase = supabase;
     }
     async create(data) {
-        return this.prisma.deal.create({ data });
+        const { data: record, error } = await this.supabase.client.from('Deal').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
     }
     async findAll() {
-        return this.prisma.deal.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
+        const { data, error } = await this.supabase.client.from('Deal').select('*').order('createdAt', { ascending: false });
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return data;
     }
     async findOne(id) {
-        const deal = await this.prisma.deal.findUnique({
-            where: { id },
-            include: {
-                investments: true,
-                ledgerEntries: true,
-                fees: true,
-            }
-        });
-        if (!deal)
-            throw new common_1.NotFoundException(`Deal with ID ${id} not found`);
-        return deal;
+        const { data, error } = await this.supabase.client
+            .from('Deal')
+            .select('*, investments:Investment(*), ledgerEntries:LedgerEntry(*), fees:Fee(*)')
+            .eq('id', id)
+            .single();
+        if (error) {
+            if (error.code === 'PGRST116')
+                throw new common_1.NotFoundException(`Deal with ID ${id} not found`);
+            throw new common_1.InternalServerErrorException(error.message);
+        }
+        return data;
     }
     async update(id, data) {
-        return this.prisma.deal.update({
-            where: { id },
-            data,
-        });
+        const { data: record, error } = await this.supabase.client.from('Deal').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
     }
     async remove(id) {
-        return this.prisma.deal.delete({
-            where: { id },
-        });
+        const { data: record, error } = await this.supabase.client.from('Deal').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
     }
 };
 exports.DealsService = DealsService;
 exports.DealsService = DealsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService])
 ], DealsService);
 //# sourceMappingURL=deals.service.js.map

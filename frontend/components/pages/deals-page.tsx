@@ -3,19 +3,19 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
-  TrendingUp,
-  Users,
-  FileText,
   Search,
-  Download,
-  Plus,
   LayoutGrid,
   List,
+  ShieldCheck,
+  BadgeCheck,
+  Lock,
+  TrendingUp,
+  ChevronDown,
   Building2,
-  ChevronRight,
-  X,
+  Users,
+  Plus,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -23,9 +23,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
+import { useAuth } from '@/components/providers/auth-provider'
+import { CreateDealDialog } from '@/components/shared/create-deal-dialog'
 import {
   Table,
   TableBody,
@@ -34,47 +35,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { identities } from '@/lib/mock-data'
-import { useAuth } from '@/components/providers/auth-provider'
 import { fetchDeals } from '@/lib/api-client'
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
 import type { DealStatus, DealType, Deal } from '@/lib/types'
 
-const statusFilters: { id: DealStatus | 'all'; label: string }[] = [
-  { id: 'all', label: 'All Status' },
-  { id: 'draft', label: 'Draft' },
-  { id: 'submitted', label: 'Submitted' },
-  { id: 'onboarding', label: 'Onboarding' },
-  { id: 'closing', label: 'Closing' },
-  { id: 'closed', label: 'Closed' },
+// Map product types for filtering
+const productTypeFilters: { id: string; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'standard_spv', label: 'Standard SPV' },
+  { id: 'premium_spv', label: 'Premium SPV' },
+  { id: 'fund', label: 'Fund' },
 ]
 
 function formatCurrency(amount: number): string {
+  if (amount >= 1000000000) {
+    return `$${(amount / 1000000000).toFixed(1)}B`
+  }
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(1)}M`
   }
@@ -88,263 +63,151 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-function getStatusBadge(status: DealStatus) {
-  const statusConfig: Record<DealStatus, { label: string; className: string }> = {
-    draft: { label: 'Draft', className: 'bg-muted text-muted-foreground border-transparent' },
-    submitted: { label: 'Submitted', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-    onboarding: { label: 'Onboarding', className: 'bg-primary/10 text-primary border-primary/20' },
-    closing: { label: 'Closing', className: 'bg-sky-500/10 text-sky-600 border-sky-500/20' },
-    close_requested: { label: 'Close Requested', className: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
-    closed: { label: 'Closed', className: 'bg-muted text-muted-foreground border-transparent' },
-    test: { label: 'Test', className: 'bg-primary/10 text-primary border-primary/20' },
-    migration: { label: 'Migration', className: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
-  }
-  const config = statusConfig[status]
-  return <Badge variant="outline" className={cn('text-[10px] font-medium', config.className)}>{config.label}</Badge>
+function formatDate(dateString: string): string {
+  if (!dateString) return 'TBD'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
 }
 
-// Create Deal Dialog
-function CreateDealDialog({
-  open,
-  onOpenChange
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  const router = useRouter()
-  const { requireAuth } = useAuth()
-  const [dealType, setDealType] = React.useState<DealType>('spv')
-  const [dealName, setDealName] = React.useState('')
-  const [selectedIdentity, setSelectedIdentity] = React.useState('')
-  const [isCreating, setIsCreating] = React.useState(false)
-
-  // Check auth when dialog opens
-  React.useEffect(() => {
-    if (open) {
-      const isAuthed = requireAuth()
-      if (!isAuthed) {
-        onOpenChange(false)
-      }
-    }
-  }, [open, requireAuth, onOpenChange])
-
-  const handleCreate = async () => {
-    if (!dealName.trim()) return
-
-    setIsCreating(true)
-
-    try {
-      const response = await fetch('http://localhost:3001/api/deals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: dealName,
-          type: dealType,
-          entityName: `${dealName} LLC`,
-          status: 'draft',
-          productType: 'standard_spv',
-          managementFee: 1,
-          carry: 10,
-          targetRaise: 1000000,
-          minimumInvestment: 10000,
-          totalSigned: 0,
-          totalWired: 0,
-          investorCount: 0,
-          estimatedClosingDate: new Date().toISOString(),
-          offeringType: '506b',
-          fundManagerId: 'user_1'
-        }),
-      });
-      const newDeal = await response.json();
-
-      onOpenChange(false);
-      router.push(`/deals/${newDeal.id}/admin`);
-    } catch (error) {
-      console.error('Failed to create deal', error);
-      setIsCreating(false);
-    }
-  }
-
-  React.useEffect(() => {
-    if (open) {
-      setDealType('spv')
-      setDealName('')
-      setSelectedIdentity('')
-      setIsCreating(false)
-    }
-  }, [open])
-
+function HeroBanner() {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Deal</DialogTitle>
-          <DialogDescription>
-            Start by selecting the deal type and giving it a name.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="relative overflow-hidden rounded-2xl mb-8 p-8 border border-border/50 bg-gradient-to-br from-background via-background to-muted">
+      {/* Decorative gradient background elements */}
+      <div className="absolute inset-0 opacity-30 dark:opacity-40 mix-blend-screen pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-500/30 rounded-full blur-3xl" />
+        <div className="absolute top-12 right-48 w-72 h-72 bg-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 right-12 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl" />
+      </div>
 
-        <div className="space-y-4 py-2">
-          {/* Deal Type Selection */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Deal Type</Label>
-            <RadioGroup
-              value={dealType}
-              onValueChange={(v) => setDealType(v as DealType)}
-              className="grid grid-cols-2 gap-3"
-            >
-              <Label
-                htmlFor="spv"
-                className={cn(
-                  "flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all",
-                  dealType === 'spv'
-                    ? "border-primary bg-primary/5"
-                    : "border-muted hover:border-muted-foreground/30"
-                )}
-              >
-                <RadioGroupItem value="spv" id="spv" className="sr-only" />
-                <Building2 className={cn(
-                  "size-8 mb-2",
-                  dealType === 'spv' ? "text-primary" : "text-muted-foreground"
-                )} />
-                <span className={cn(
-                  "font-medium text-sm",
-                  dealType === 'spv' ? "text-primary" : "text-foreground"
-                )}>SPV</span>
-                <span className="text-[10px] text-muted-foreground text-center mt-1">
-                  Single investment vehicle
-                </span>
-              </Label>
-
-              <Label
-                htmlFor="fund"
-                className={cn(
-                  "flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all",
-                  dealType === 'fund'
-                    ? "border-primary bg-primary/5"
-                    : "border-muted hover:border-muted-foreground/30"
-                )}
-              >
-                <RadioGroupItem value="fund" id="fund" className="sr-only" />
-                <TrendingUp className={cn(
-                  "size-8 mb-2",
-                  dealType === 'fund' ? "text-primary" : "text-muted-foreground"
-                )} />
-                <span className={cn(
-                  "font-medium text-sm",
-                  dealType === 'fund' ? "text-primary" : "text-foreground"
-                )}>Fund</span>
-                <span className="text-[10px] text-muted-foreground text-center mt-1">
-                  Multiple investments
-                </span>
-              </Label>
-            </RadioGroup>
-          </div>
-
-          {/* Deal Name */}
-          <div className="space-y-2">
-            <Label htmlFor="deal-name" className="text-xs font-medium">Deal Name</Label>
-            <Input
-              id="deal-name"
-              placeholder={dealType === 'spv' ? "e.g., Series A Investment SPV" : "e.g., Venture Fund I"}
-              value={dealName}
-              onChange={(e) => setDealName(e.target.value)}
-              className="h-10"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              This will be visible to investors. You can change it later.
-            </p>
-          </div>
-
-          {/* Identity Selection */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Select Identity (Optional)</Label>
-            <Select value={selectedIdentity} onValueChange={setSelectedIdentity}>
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Select an identity" />
-              </SelectTrigger>
-              <SelectContent>
-                {identities.map((identity) => (
-                  <SelectItem key={identity.id} value={identity.id}>
-                    {identity.name} - {identity.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              Associate this deal with an existing identity.
-            </p>
-          </div>
+      <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+        <div className="max-w-xl">
+          <Badge variant="outline" className="mb-4 text-[10px] font-bold tracking-wider text-amber-500 border-amber-500/30 bg-amber-500/10 uppercase">
+            Q2 • 2026 DROP
+          </Badge>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
+            Three frontier deals,<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-rose-500">
+              one allocation window.
+            </span>
+          </h1>
+          <p className="text-muted-foreground flex items-center gap-2">
+            Invest in pre-IPO stocks using
+            <Badge variant="secondary" className="text-xs font-semibold">RWA</Badge>
+          </p>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreate}
-            disabled={!dealName.trim() || isCreating}
-          >
-            {isCreating ? 'Creating...' : 'Create Deal'}
-            {!isCreating && <ChevronRight className="size-4 ml-1" />}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {/* Mock Logos for Hero */}
+        <div className="flex flex-col items-end gap-3 hidden sm:flex">
+          <div className="flex items-center -space-x-3">
+            <div className="size-12 rounded-full border-2 border-background bg-zinc-900 text-white flex items-center justify-center font-bold z-30 shadow-lg">FA</div>
+            <div className="size-12 rounded-full border-2 border-background bg-orange-600 text-white flex items-center justify-center font-bold z-20 shadow-lg">AN</div>
+            <div className="size-12 rounded-full border-2 border-background bg-blue-600 text-white flex items-center justify-center font-bold z-10 shadow-lg">NL</div>
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">Figure AI • Anthropic • Neuralink</p>
+        </div>
+      </div>
+    </div>
   )
 }
 
-function DealCard({ deal }: { deal: Deal }) {
-  const fundingProgress = Math.min((deal.totalWired / deal.targetRaise) * 100, 100)
+function ValuePropsFooter() {
+  const props = [
+    { icon: ShieldCheck, title: "Curated Quality", desc: "Rigorous due diligence on every opportunity" },
+    { icon: BadgeCheck, title: "Exclusive Access", desc: "Private-market deals for eligible investors" },
+    { icon: Lock, title: "Secure & Compliant", desc: "Institutional-grade security and regulatory compliance" },
+    { icon: TrendingUp, title: "Built for Long Term", desc: "Backing the next generation of category leaders" },
+  ]
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 p-6 rounded-2xl bg-card border">
+      {props.map((prop, i) => {
+        const Icon = prop.icon
+        return (
+          <div key={i} className="flex items-start gap-4 p-2">
+            <div className="p-2.5 rounded-full bg-primary/10 text-primary shrink-0">
+              <Icon className="size-5" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-1">{prop.title}</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">{prop.desc}</p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function PremiumDealCard({ deal, index }: { deal: Deal, index: number }) {
+  // Determine accent color based on index for variety
+  const accents = [
+    { text: 'text-amber-500', border: 'border-amber-500/50', bg: 'bg-amber-500/10', hover: 'hover:bg-amber-500/20' },
+    { text: 'text-purple-500', border: 'border-purple-500/50', bg: 'bg-purple-500/10', hover: 'hover:bg-purple-500/20' },
+    { text: 'text-blue-500', border: 'border-blue-500/50', bg: 'bg-blue-500/10', hover: 'hover:bg-blue-500/20' },
+    { text: 'text-emerald-500', border: 'border-emerald-500/50', bg: 'bg-emerald-500/10', hover: 'hover:bg-emerald-500/20' },
+  ]
+  const accent = accents[index % accents.length]
 
   return (
     <Link href={`/deals/${deal.id}`}>
-      <Card className="h-full transition-colors hover:border-primary/30 cursor-pointer">
-        <CardContent className="px-3 py-3">
-          <div className="flex items-start gap-3 mb-3">
-            <Avatar className="size-10 bg-primary/10 text-primary shrink-0">
-              <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 border-border/50 group bg-card">
+        <CardContent className="p-6 flex flex-col h-full">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-4">
+            <Avatar className="size-12 rounded-xl bg-zinc-900 text-white shrink-0 border shadow-sm">
+              <AvatarFallback className="text-lg font-bold bg-zinc-900 text-white rounded-xl">
                 {deal.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm truncate">{deal.name}</h3>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{deal.entityName}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 mb-3">
-            {getStatusBadge(deal.status)}
-            <Badge variant="outline" className="uppercase text-[10px] font-medium">
-              {deal.type}
+            <Badge variant="secondary" className={cn("text-[11px] font-medium capitalize px-2.5 py-0.5 border-transparent", accent.bg, accent.text)}>
+              {deal.status.replace('_', ' ')}
             </Badge>
           </div>
 
-          <div className="space-y-1.5 mb-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{Math.round(fundingProgress)}%</span>
-            </div>
-            <Progress value={fundingProgress} className="h-1" />
+          {/* Titles */}
+          <div className="mb-4">
+            <h3 className="font-bold text-xl tracking-tight mb-1 text-foreground">{deal.name}</h3>
+            <p className="text-sm text-muted-foreground font-medium">{deal.entityName}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t text-xs">
-            <div className="space-y-1">
-              <p className="text-muted-foreground">Signed</p>
-              <p className="font-semibold">{formatCurrency(deal.totalSigned)}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-muted-foreground">Wired</p>
-              <p className="font-semibold">{formatCurrency(deal.totalWired)}</p>
+          {/* Description */}
+          <p className="text-sm text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
+            {deal.memo || "Exclusive investment opportunity offering strategic exposure to early-stage growth and high-potential market expansion."}
+          </p>
+
+          {/* Data Block */}
+          <div className="bg-amber-500/5 dark:bg-muted/30 rounded-xl p-4 mb-6 mt-auto">
+            <div className="space-y-3 text-[13px]">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Target Raise</span>
+                <span className="font-semibold text-foreground">{formatCurrency(deal.targetRaise)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Min Invest</span>
+                <span className="font-semibold text-foreground">{formatCurrency(deal.minimumInvestment)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Signed</span>
+                <span className="font-semibold text-foreground">{formatCurrency(deal.totalSigned)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Round Date</span>
+                <span className="font-semibold text-foreground">{formatDate(deal.estimatedClosingDate)}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t mt-3 text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users className="size-3.5" />
-              {deal.investorCount}
-            </div>
-            <span className="text-muted-foreground">{deal.managementFee}% fee</span>
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge variant="secondary" className="text-[11px] font-medium bg-amber-500/5 dark:bg-muted/50 text-muted-foreground border-transparent uppercase hover:bg-amber-500/10 transition-colors">
+              {deal.type}
+            </Badge>
+            <Badge variant="secondary" className="text-[11px] font-medium bg-amber-500/5 dark:bg-muted/50 text-muted-foreground border-transparent hover:bg-amber-500/10 transition-colors">
+              Accredited only
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -356,14 +219,20 @@ export function DealsPage() {
   const [deals, setDeals] = React.useState<Deal[]>([])
   const [loading, setLoading] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState('')
-  const [selectedStatus, setSelectedStatus] = React.useState<DealStatus | 'all'>('all')
-  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('table')
-  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
-  const [currentPage, setCurrentPage] = React.useState(1)
-  
-  const itemsPerPage = viewMode === 'grid' ? 8 : 10
+  const [selectedType, setSelectedType] = React.useState<string>('all')
+  const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('grid')
+  const [ownershipFilter, setOwnershipFilter] = React.useState<'my_deals' | 'discover'>('my_deals')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
 
-  const { isAuthenticated } = useAuth()
+  const { requireAuth, user, isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  const handleCreateDealClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (requireAuth()) {
+      setIsCreateDialogOpen(true)
+    }
+  }
 
   React.useEffect(() => {
     fetchDeals()
@@ -381,161 +250,153 @@ export function DealsPage() {
     return deals.filter((deal) => {
       const matchesSearch = deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (deal.entityName || '').toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesStatus = selectedStatus === 'all' || deal.status === selectedStatus
-      return matchesSearch && matchesStatus
+      const matchesType = selectedType === 'all' || deal.productType === selectedType || deal.type === selectedType
+      
+      let matchesOwnership = true
+      if (isAuthenticated && user) {
+        if (ownershipFilter === 'my_deals') {
+          matchesOwnership = deal.fundManagerId === user.id
+        } else if (ownershipFilter === 'discover') {
+          matchesOwnership = deal.fundManagerId !== user.id
+        }
+      }
+
+      return matchesSearch && matchesType && matchesOwnership
     })
-  }, [deals, searchQuery, selectedStatus])
-
-  React.useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, selectedStatus, viewMode])
-
-  const paginatedDeals = React.useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredDeals.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredDeals, currentPage, itemsPerPage])
-
-  const totalPages = Math.ceil(filteredDeals.length / itemsPerPage)
-
-  const stats = React.useMemo(() => {
-    const totalAUM = deals.reduce((sum, deal) => sum + deal.totalWired, 0)
-    const totalInvestors = deals.reduce((sum, deal) => sum + deal.investorCount, 0)
-    return { aum: totalAUM, investors: totalInvestors, totalDeals: deals.length }
-  }, [deals])
+  }, [deals, searchQuery, selectedType, ownershipFilter, isAuthenticated, user])
 
   if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading deals...</div>
+    return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading curated opportunities...</div>
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+      
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Deals</h1>
-          <p className="text-sm text-muted-foreground">Manage and track your investment deals.</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">Deals</h1>
+          <p className="text-sm text-muted-foreground">Curated private-market opportunities for ALLO investors</p>
         </div>
-        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="size-4 mr-1.5" />
-          New Deal
+        <Button 
+          onClick={handleCreateDealClick}
+          className="font-medium bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
+        >
+          <Plus className="mr-2 size-4" /> Create Deal
         </Button>
       </div>
 
-      {/* Stats */}
-      {isAuthenticated && (
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="px-3 py-3">
-                <div className="flex items-center gap-2 text-primary text-xs font-medium mb-1.5">
-                  <TrendingUp className="size-3.5" />
-                  AUM
-                </div>
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.aum + 21120)}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+      <HeroBanner />
 
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <Card>
-              <CardContent className="px-3 py-3">
-                <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-1.5">
-                  <Users className="size-3.5" />
-                  Investors
-                </div>
-                <p className="text-2xl font-bold">{stats.investors}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+      {/* Toolbar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          
+          {isAuthenticated && (
+            <>
+              <div className="flex items-center bg-muted/50 p-1 rounded-full border">
+                <button 
+                  onClick={() => setOwnershipFilter('my_deals')} 
+                  className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all", ownershipFilter === 'my_deals' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  My Deals
+                </button>
+                <button 
+                  onClick={() => setOwnershipFilter('discover')} 
+                  className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all", ownershipFilter === 'discover' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  Discover
+                </button>
+              </div>
+              <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+            </>
+          )}
 
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card>
-              <CardContent className="px-3 py-3">
-                <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-1.5">
-                  <FileText className="size-3.5" />
-                  Deals
-                </div>
-                <p className="text-2xl font-bold">{stats.totalDeals}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search deals..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
-          />
+          {productTypeFilters.map(filter => {
+            const isActive = selectedType === filter.id;
+            return (
+              <button
+                key={filter.id}
+                onClick={() => setSelectedType(filter.id)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border",
+                  isActive 
+                    ? "bg-amber-500/10 text-amber-500 border-amber-500/30" 
+                    : "bg-transparent text-muted-foreground border-border hover:border-border/80 hover:bg-muted/50"
+                )}
+              >
+                {filter.label}
+              </button>
+            )
+          })}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as DealStatus | 'all')}>
-            <SelectTrigger className="w-32 h-9 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {statusFilters.map((filter) => (
-                <SelectItem key={filter.id} value={filter.id} className="text-xs">
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Search, Sort, View Controls */}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search deals..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 w-[200px] lg:w-[250px] bg-background border-border/50 focus-visible:ring-1 focus-visible:ring-amber-500/50"
+            />
+          </div>
 
-          <div className="flex border rounded-md overflow-hidden">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground ml-2">
+            <span>Sort by</span>
+            <Button variant="outline" size="sm" className="h-9 px-3 gap-2 border-border/50">
+              Top Picks <ChevronDown className="size-3" />
+            </Button>
+          </div>
+
+          <div className="flex border border-border/50 rounded-md overflow-hidden bg-background">
             <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              variant="ghost"
               size="icon"
-              className="size-9 rounded-none"
+              className={cn("size-9 rounded-none", viewMode === 'grid' ? "bg-amber-500/10 text-amber-500" : "text-muted-foreground")}
               onClick={() => setViewMode('grid')}
             >
               <LayoutGrid className="size-4" />
             </Button>
             <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              variant="ghost"
               size="icon"
-              className="size-9 rounded-none"
+              className={cn("size-9 rounded-none", viewMode === 'table' ? "bg-amber-500/10 text-amber-500" : "text-muted-foreground")}
               onClick={() => setViewMode('table')}
             >
               <List className="size-4" />
             </Button>
           </div>
-
-          <Button variant="outline" size="sm" className="hidden sm:flex h-9 text-xs">
-            <Download className="size-3.5 mr-1.5" />
-            Export
-          </Button>
         </div>
       </div>
 
       {/* Grid View */}
       {viewMode === 'grid' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-        >
-          {paginatedDeals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredDeals.map((deal, idx) => (
+            <motion.div 
+              key={deal.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <PremiumDealCard deal={deal} index={idx} />
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
       )}
 
       {/* Table View */}
       {viewMode === 'table' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <Card>
+          <Card className="border-border/50 bg-card">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[180px]">Deal</TableHead>
+                    <TableHead className="min-w-[200px]">Deal</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead className="text-right">Signed</TableHead>
@@ -545,12 +406,12 @@ export function DealsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedDeals.map((deal) => (
-                    <TableRow key={deal.id} className="group">
+                  {filteredDeals.map((deal) => (
+                    <TableRow key={deal.id} className="group hover:bg-muted/50">
                       <TableCell>
-                        <Link href={`/deals/${deal.id}`} className="flex items-center gap-3 hover:text-primary">
-                          <Avatar className="size-8 bg-primary/10 text-primary">
-                            <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
+                        <Link href={`/deals/${deal.id}`} className="flex items-center gap-3 hover:text-amber-500 transition-colors">
+                          <Avatar className="size-8 bg-amber-500/10 text-amber-500 shrink-0">
+                            <AvatarFallback className="text-xs font-semibold bg-amber-500/10 text-amber-500">
                               {deal.name.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
@@ -560,9 +421,13 @@ export function DealsPage() {
                           </div>
                         </Link>
                       </TableCell>
-                      <TableCell>{getStatusBadge(deal.status)}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="uppercase text-[10px]">
+                        <Badge variant="outline" className="text-[10px] font-medium text-amber-500 border-amber-500/30 bg-amber-500/5 capitalize">
+                          {deal.status.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="uppercase text-[10px] text-muted-foreground bg-transparent">
                           {deal.type}
                         </Badge>
                       </TableCell>
@@ -572,9 +437,14 @@ export function DealsPage() {
                       <TableCell className="text-right font-medium text-sm">
                         {formatCurrency(deal.totalWired)}
                       </TableCell>
-                      <TableCell className="text-right text-sm">{deal.investorCount}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild className="opacity-0 group-hover:opacity-100">
+                      <TableCell className="text-right text-sm">
+                        <div className="flex items-center justify-end gap-1.5 text-muted-foreground">
+                          <Users className="size-3.5" />
+                          {deal.investorCount}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" asChild className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 hover:text-amber-600 hover:bg-amber-500/10">
                           <Link href={`/deals/${deal.id}`}>View</Link>
                         </Button>
                       </TableCell>
@@ -588,72 +458,18 @@ export function DealsPage() {
       )}
 
       {filteredDeals.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="size-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-sm text-muted-foreground">No deals found.</p>
+        <div className="text-center py-20 border border-dashed rounded-2xl border-border/50">
+          <Building2 className="size-10 mx-auto text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground">No opportunities match your current filters.</p>
+          <Button variant="link" onClick={() => setSelectedType('all')} className="text-amber-500">
+            Clear filters
+          </Button>
         </div>
       )}
 
-      {totalPages > 1 && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (currentPage > 1) setCurrentPage(p => p - 1)
-                }}
-                className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const page = i + 1
-              if (
-                page === 1 ||
-                page === totalPages ||
-                (page >= currentPage - 1 && page <= currentPage + 1)
-              ) {
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      href="#"
-                      isActive={page === currentPage}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setCurrentPage(page)
-                      }}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              }
-              if (page === currentPage - 2 || page === currentPage + 2) {
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )
-              }
-              return null
-            })}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (currentPage < totalPages) setCurrentPage(p => p + 1)
-                }}
-                className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <CreateDealDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
 
-      {/* Create Deal Dialog */}
-      <CreateDealDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+      <ValuePropsFooter />
     </div>
   )
 }

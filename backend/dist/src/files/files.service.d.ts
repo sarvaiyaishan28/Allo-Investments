@@ -1,23 +1,7 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 export declare class FilesService {
-    private prisma;
-    constructor(prisma: PrismaService);
-    findAll(): Promise<{
-        id: string;
-        name: string;
-        type: string;
-        size: number;
-        url: string;
-        uploadedAt: Date;
-        uploadedBy: string;
-    }[]>;
-    findOne(id: string): Promise<{
-        id: string;
-        name: string;
-        type: string;
-        size: number;
-        url: string;
-        uploadedAt: Date;
-        uploadedBy: string;
-    }>;
+    private supabase;
+    constructor(supabase: SupabaseService);
+    findAll(): Promise<any[]>;
+    findOne(id: string): Promise<any>;
 }

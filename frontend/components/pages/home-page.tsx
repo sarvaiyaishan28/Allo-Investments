@@ -2,26 +2,29 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  DollarSign,
-  Briefcase,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowRight,
   Building2,
   Users,
-  ChevronRight,
-  Diamond,
-  Sparkles,
+  PieChart,
+  ArrowRight,
+  MoreHorizontal,
+  Wallet,
+  ArrowUpRight,
+  LineChart,
+  Network,
+  DollarSign
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { currentUser } from '@/lib/mock-data'
-import { fetchDeals } from '@/lib/api-client'
 import { useAuth } from '@/components/providers/auth-provider'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
+import { fetchDeals } from '@/lib/api-client'
 import type { Deal } from '@/lib/types'
 
 const container = {
@@ -37,340 +40,338 @@ const item = {
   show: { opacity: 1, y: 0 }
 }
 
-function formatNumber(num: number): string {
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(num >= 10000 ? 1 : 2) + 'K'
-  return num.toLocaleString()
+function formatCurrency(amount: number): string {
+  if (amount >= 1000000000) {
+    return `$${(amount / 1000000000).toFixed(1)}B`
+  }
+  if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1)}M`
+  }
+  if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(0)}K`
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+  }).format(amount)
 }
 
-function StatCard({ 
-  title, 
-  value, 
-  change, 
-  icon: Icon,
-  trend = 'up',
-  primary = false
-}: { 
-  title: string
-  value: string
-  change?: string
-  icon: React.ElementType
-  trend?: 'up' | 'down' | 'neutral'
-  primary?: boolean
-}) {
-  return (
-    <motion.div variants={item}>
-      <Card className={cn(primary && "bg-primary/5 border-primary/20")}>
-        <CardContent className="px-4 py-4">
-          <div className="flex items-center gap-2 text-xs font-medium mb-2">
-            <Icon className={cn("size-3.5", primary ? "text-primary" : "text-muted-foreground")} />
-            <span className={cn(primary ? "text-primary" : "text-muted-foreground")}>{title}</span>
-          </div>
-          <p className="text-2xl font-bold">{value}</p>
-          {change && (
-            <p className={cn(
-              "text-xs mt-1 flex items-center gap-0.5",
-              trend === 'up' && "text-emerald-600",
-              trend === 'down' && "text-destructive",
-              trend === 'neutral' && "text-muted-foreground"
-            )}>
-              {trend === 'up' && <ArrowUpRight className="size-3" />}
-              {change}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
-
-import { DealCard } from '@/components/shared/deal-card'
-
-function MyDealsSection() {
-  const [myDeals, setMyDeals] = React.useState<Deal[]>([])
+function DashboardDealCard({ deal }: { deal: Deal }) {
+  const fundingProgress = deal.targetRaise > 0 ? Math.min((deal.totalWired / deal.targetRaise) * 100, 100) : 0;
   
-  React.useEffect(() => {
-    fetchDeals().then(data => {
-      setMyDeals(data.filter((d: Deal) => d.fundManagerId === currentUser.id).slice(0, 3))
-    }).catch(console.error)
-  }, [])
-
   return (
-    <motion.div variants={item}>
-      <Card>
-        <CardHeader className="pb-3 px-4 pt-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">My Deals</CardTitle>
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" asChild>
-              <Link href="/deals">
-                View All <ArrowRight className="size-3" />
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0 px-4 pb-4">
-          <div className="space-y-2">
-            {myDeals.map((deal) => (
-              <Link
-                key={deal.id}
-                href={`/deals/${deal.id}`}
-                className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors group"
-              >
-                <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-semibold text-sm shrink-0">
+    <Link href={`/deals/${deal.id}`}>
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 group bg-card">
+        <CardContent className="p-6 flex flex-col h-full">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-start gap-3 min-w-0">
+              <Avatar className="size-12 rounded-full bg-amber-500/10 text-amber-500 shrink-0">
+                <AvatarFallback className="text-lg font-bold bg-amber-500/10 text-amber-500 rounded-full">
                   {deal.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate group-hover:text-orange-500 transition-colors">
-                    {deal.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-muted/50 border-transparent">{deal.type.toUpperCase()}</Badge>
-                    <span className="text-[10px] text-muted-foreground">
-                      Target: ${(deal.targetRaise / 1000000).toFixed(1)}M
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Link>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
-
-function InvestmentOpportunitiesSection() {
-  const [opportunities, setOpportunities] = React.useState<Deal[]>([])
-
-  React.useEffect(() => {
-    fetchDeals().then(data => {
-      setOpportunities(data.filter((d: Deal) => d.fundManagerId !== currentUser.id).slice(0, 3))
-    }).catch(console.error)
-  }, [])
-
-  return (
-    <motion.div variants={item}>
-      <Card>
-        <CardHeader className="pb-3 px-4 pt-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">Investment Opportunities</CardTitle>
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" asChild>
-              <Link href="/deals">
-                Explore <ArrowRight className="size-3" />
-              </Link>
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 pt-0.5">
+                <h3 className="font-bold text-sm truncate text-foreground">{deal.name}</h3>
+                <p className="text-xs text-muted-foreground truncate">{deal.entityName}</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0" onClick={(e) => e.preventDefault()}>
+              <MoreHorizontal className="size-4" />
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0 px-4 pb-4">
-          <div className="space-y-2">
-            {opportunities.map((deal) => {
-              const progress = (deal.totalWired / deal.targetRaise) * 100
-              return (
-                <Link
-                  key={deal.id}
-                  href={`/deals/${deal.id}`}
-                  className="block p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors group"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-semibold text-sm shrink-0">
-                      {deal.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium truncate group-hover:text-orange-500 transition-colors">
-                          {deal.name}
-                        </p>
-                        <Badge 
-                          variant="secondary" 
-                          className={cn(
-                            "text-[10px] h-4 px-1.5 shrink-0",
-                            progress >= 100 && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          )}
-                        >
-                          {progress >= 100 ? 'Funded' : `${progress.toFixed(0)}%`}
-                        </Badge>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{deal.entityName}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Building2 className="size-3" />
-                          <span>{deal.type.toUpperCase()}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Users className="size-3" />
-                          <span>{deal.investorCount}</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">
-                          Min ${formatNumber(deal.minimumInvestment)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2.5 h-1 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${Math.min(progress, 100)}%` }}
-                    />
-                  </div>
-                </Link>
-              )
-            })}
+          
+          {/* Badges */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-transparent text-[10px] uppercase font-medium">
+              {deal.status.replace('_', ' ')}
+            </Badge>
+            <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] uppercase font-medium">
+              {deal.type}
+            </Badge>
+          </div>
+          
+          {/* Progress */}
+          <div className="space-y-2 mb-6 mt-auto">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Progress</span>
+              <Badge variant="secondary" className="text-[10px] h-5 bg-emerald-500/10 text-emerald-600 border-transparent">{Math.round(fundingProgress)}%</Badge>
+            </div>
+            <Progress value={fundingProgress} className="h-1.5 [&>div]:bg-amber-500" />
+          </div>
+          
+          <div className="h-px bg-border/60 w-full mb-4" />
+          
+          {/* Signed / Wired */}
+          <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+            <div>
+              <p className="text-muted-foreground mb-1">Signed</p>
+              <p className="font-bold text-base text-foreground">{formatCurrency(deal.totalSigned)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Wired</p>
+              <p className="font-bold text-base text-foreground">{formatCurrency(deal.totalWired)}</p>
+            </div>
+          </div>
+          
+          <div className="h-px bg-border/60 w-full mb-4" />
+          
+          {/* Footer */}
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Users className="size-4" />
+              <span>{deal.investorCount} Investors</span>
+            </div>
+            <span>{deal.managementFee}% fee</span>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </Link>
   )
 }
 
 export function HomePage() {
-  const { isAuthenticated } = useAuth()
-  const [dashboardDeals, setDashboardDeals] = React.useState<Deal[]>([])
+  const [deals, setDeals] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const { requireAuth } = useAuth()
+  const router = useRouter()
+
+  const handleProtectedAction = (e: React.MouseEvent, path: string) => {
+    e.preventDefault()
+    if (requireAuth(path)) {
+      router.push(path)
+    }
+  }
 
   React.useEffect(() => {
-    if (isAuthenticated) return;
     fetchDeals()
-      .then(data => setDashboardDeals(data.length > 0 ? data.slice(0, 3) : []))
-      .catch(err => setDashboardDeals([]))
-  }, [isAuthenticated])
+      .then(data => {
+        setDeals(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch deals', err)
+        setLoading(false)
+      })
+  }, [])
 
-  if (!isAuthenticated) {
-    return (
+  // Calculate stats based on deals
+  const totalActiveDeals = deals.filter(d => !['closed', 'draft'].includes(d.status)).length || 12; // Fallback to 12 if no data
+  const totalInvestors = deals.reduce((acc, curr) => acc + curr.investorCount, 0) || 668;
+  const capitalRaised = deals.reduce((acc, curr) => acc + curr.totalWired, 0) || 24800000;
+  
+  let avgProgress = 48; // Fallback
+  if (deals.length > 0) {
+    const totalProgress = deals.reduce((acc, curr) => acc + (curr.targetRaise > 0 ? (curr.totalWired / curr.targetRaise) : 0), 0);
+    avgProgress = Math.round((totalProgress / deals.length) * 100);
+  }
+
+  if (loading) {
+    return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading dashboard...</div>
+  }
+
+  return (
+    <div className="relative overflow-hidden w-full h-full">
+      {/* Decorative Dashboard Header Background Pattern */}
+      <div className="absolute top-[-50px] right-[-50px] pointer-events-none opacity-40 dark:opacity-20 hidden md:block z-0">
+        <svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="650" cy="100" r="150" fill="url(#paint0_radial)" opacity="0.4"/>
+          <path d="M200 400 Q500 0 800 300" stroke="#f97316" strokeWidth="0.5" fill="none" />
+          <path d="M300 450 Q600 50 900 350" stroke="#f97316" strokeWidth="0.5" fill="none" />
+          <path d="M400 500 Q700 100 1000 400" stroke="#f97316" strokeWidth="0.5" fill="none" />
+          <path d="M100 150 Q400 300 700 -50" stroke="#f97316" strokeWidth="0.5" fill="none" />
+          <circle cx="350" cy="200" r="3" fill="#f97316" />
+          <circle cx="550" cy="100" r="4" fill="#f97316" />
+          <circle cx="650" cy="250" r="3" fill="#f97316" />
+          <circle cx="750" cy="50" r="5" fill="#f97316" />
+          <defs>
+            <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(650 100) rotate(90) scale(150)">
+              <stop stopColor="#ffedd5" />
+              <stop offset="1" stopColor="#ffedd5" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+
       <motion.div
         variants={container}
         initial="hidden"
         animate="show"
-        className="p-6 lg:p-8 space-y-6"
+        className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-10 relative z-10"
       >
-        {/* Preview Banner */}
-        <motion.div variants={item} className="bg-primary/10 border border-primary/20 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-primary flex items-center gap-2 mb-1">
-              <Sparkles className="size-5" />
-              Allo Platform Preview
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              You are viewing a demo of the Allo dashboard. Sign in to access real-time data, manage your portfolio, form entities, and syndicate deals.
-            </p>
-          </div>
-          <Button className="shrink-0 shadow-sm" asChild>
-            <Link href="/login">Connect Wallet / Sign In</Link>
-          </Button>
-        </motion.div>
-
-        {/* Header */}
-        <motion.div variants={item}>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your portfolio overview and investment opportunities
-          </p>
-        </motion.div>
-
-        {/* Feature Summary */}
-        <motion.div variants={item} className="grid md:grid-cols-3 gap-4 pt-4">
-            <Card className="bg-muted/30 border-dashed hover:bg-muted/50 transition-colors">
-                <CardHeader className="pb-2">
-                    <Building2 className="size-6 text-primary mb-2" />
-                    <CardTitle className="text-lg">Entity Formation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Instantly form series LLCs and manage entity structures directly within the platform. All legal templates included.</p>
-                </CardContent>
-            </Card>
-            <Card className="bg-muted/30 border-dashed hover:bg-muted/50 transition-colors">
-                <CardHeader className="pb-2">
-                    <Briefcase className="size-6 text-blue-500 mb-2" />
-                    <CardTitle className="text-lg">Deal Syndication</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Launch deals, invite investors, and track capital commitments with our streamlined fund manager dashboard.</p>
-                </CardContent>
-            </Card>
-            <Card className="bg-muted/30 border-dashed hover:bg-muted/50 transition-colors">
-                <CardHeader className="pb-2">
-                    <TrendingUp className="size-6 text-emerald-500 mb-2" />
-                    <CardTitle className="text-lg">Portfolio Tracking</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Monitor your investments in real-time, view detailed ledger entries, and track your total AUM effortlessly.</p>
-                </CardContent>
-            </Card>
-        </motion.div>
-
-        {/* Open Opportunities */}
-        <motion.div variants={item} className="pt-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold">Featured Opportunities</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">Explore active deals currently raising capital on Allo.</p>
-            </div>
-            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
-              <Link href="/deals">View All <ArrowRight className="size-4 ml-1.5" /></Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {dashboardDeals.map(deal => (
-              <DealCard key={deal.id} deal={deal} />
-            ))}
-          </div>
-        </motion.div>
-      </motion.div>
-    )
-  }
-
-  return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="p-6 lg:p-8 space-y-6"
-    >
       {/* Header */}
       <motion.div variants={item}>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Your portfolio overview and investment opportunities
         </p>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Invested"
-          value="$1.2M"
-          change="+12.5% from last month"
-          icon={DollarSign}
-          trend="up"
-          primary
-        />
-        <StatCard
-          title="My Deals"
-          value="3"
-          change="2 active"
-          icon={Briefcase}
-          trend="neutral"
-        />
-        <StatCard
-          title="Portfolio Value"
-          value="$2.1M"
-          change="+15% returns"
-          icon={TrendingUp}
-          trend="up"
-        />
-        <StatCard
-          title="Investments"
-          value="8"
-          change="5 positions"
-          icon={TrendingUp}
-          trend="neutral"
-        />
-      </div>
+      {/* Top Action Cards */}
+      <motion.div variants={item} className="grid md:grid-cols-3 gap-6 relative z-10">
+        {/* Entity Formation */}
+        <Card className="overflow-hidden border border-border/40 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.05)] relative group bg-gradient-to-br from-card via-card to-orange-50/60 dark:to-orange-950/30">
+          <CardContent className="p-6 flex items-center h-full">
+            <div className="flex flex-col justify-start z-10 w-[50%]">
+              <div className="w-11 h-8 rounded-xl bg-orange-100/80 dark:bg-orange-900/30 text-orange-500 flex items-center justify-center mb-4">
+                <Building2 className="size-4" />
+              </div>
+              <h3 className="font-bold text-[17px] mb-2 text-foreground">Entity Formation</h3>
+              <p className="text-[12px] text-muted-foreground leading-relaxed mb-6">
+                Instantly form series LLCs and manage entity structures within the platform.
+              </p>
+              <button onClick={(e) => handleProtectedAction(e, '/entities')} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-orange-600 dark:text-orange-400 mt-auto bg-orange-100/50 hover:bg-orange-100 dark:bg-orange-500/10 dark:hover:bg-orange-500/20 px-4 py-2 rounded-full transition-colors w-fit">
+                Create Entity <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
+              {/* Colored Glow Shadow */}
+              <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-orange-500/30 dark:bg-orange-500/20 blur-xl rounded-full" />
+              <Image src="/images/entity-formation.png" width={220} height={220} alt="Entity Formation" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Deals Sections */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <MyDealsSection />
-        <InvestmentOpportunitiesSection />
-      </div>
+        {/* Deal Syndication */}
+        <Card className="overflow-hidden border border-border/40 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.05)] relative group bg-gradient-to-br from-card via-card to-blue-50/60 dark:to-blue-950/30">
+          <CardContent className="p-6 flex items-center h-full">
+            <div className="flex flex-col justify-start z-10 w-[50%]">
+              <div className="w-11 h-8 rounded-xl bg-blue-100/80 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4">
+                <Network className="size-4" />
+              </div>
+              <h3 className="font-bold text-[17px] mb-2 text-foreground">Deal Syndication</h3>
+              <p className="text-[12px] text-muted-foreground leading-relaxed mb-6">
+                Launch deals, invite investors, and track capital commitments.
+              </p>
+              <button onClick={(e) => handleProtectedAction(e, '/deals')} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 dark:text-blue-400 mt-auto bg-blue-100/50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 px-4 py-2 rounded-full transition-colors w-fit">
+                Launch Deal <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
+              {/* Colored Glow Shadow */}
+              <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-blue-500/30 dark:bg-blue-500/20 blur-xl rounded-full" />
+              <Image src="/images/deal-syndication.png" width={220} height={220} alt="Deal Syndication" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Portfolio Tracking */}
+        <Card className="overflow-hidden border border-border/40 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.05)] relative group bg-gradient-to-br from-card via-card to-emerald-50/60 dark:to-emerald-950/30">
+          <CardContent className="p-6 flex items-center h-full">
+            <div className="flex flex-col justify-start z-10 w-[50%]">
+              <div className="w-11 h-8 rounded-xl bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center mb-4">
+                <LineChart className="size-4" />
+              </div>
+              <h3 className="font-bold text-[17px] mb-2 text-foreground">Portfolio Tracking</h3>
+              <p className="text-[12px] text-muted-foreground leading-relaxed mb-6">
+                Monitor investments in real-time and track your total AUM effortlessly.
+              </p>
+              <button onClick={(e) => handleProtectedAction(e, '/investments')} className="inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-600 dark:text-emerald-400 mt-auto bg-emerald-100/50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 px-4 py-2 rounded-full transition-colors w-fit">
+                View Portfolio <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-full flex items-center justify-end pointer-events-none">
+              {/* Colored Glow Shadow */}
+              <div className="absolute bottom-[20%] right-[10%] w-[120px] h-[40px] bg-emerald-500/30 dark:bg-emerald-500/20 blur-xl rounded-full" />
+              <Image src="/images/portfolio-tracking.png" width={220} height={220} alt="Portfolio Tracking" className="object-contain mr-[-10px] relative z-10 opacity-90 group-hover:scale-105 transition-transform duration-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Featured Opportunities */}
+      <motion.div variants={item}>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight mb-1">Featured Opportunities</h2>
+            <p className="text-sm text-muted-foreground">Explore active deals currently raising capital on Allo.</p>
+          </div>
+          <Button variant="ghost" className="font-semibold text-foreground hover:bg-muted/50" asChild>
+            <Link href="/deals">View All Deals <ArrowRight className="size-4 ml-2" /></Link>
+          </Button>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {deals.slice(0, 3).map((deal, idx) => (
+            <DashboardDealCard key={deal.id} deal={deal} />
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Bottom Stats Row */}
+      <motion.div variants={item}>
+        <Card className="overflow-hidden shadow-sm border-border/50 bg-card">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/50">
+            
+            {/* Total Active Deals */}
+            <div className="p-6 flex items-start gap-4 hover:bg-muted/30 transition-colors">
+              <div className="size-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-500 flex items-center justify-center shrink-0">
+                <Wallet className="size-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Total Active Deals</p>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-2xl font-bold">{totalActiveDeals}</span>
+                </div>
+                <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium bg-emerald-500/10 w-fit px-1.5 py-0.5 rounded">
+                  <ArrowUpRight className="size-3" /> 20% <span className="text-muted-foreground bg-transparent font-normal ml-1">vs last month</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Total Investors */}
+            <div className="p-6 flex items-start gap-4 hover:bg-muted/30 transition-colors">
+              <div className="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center shrink-0">
+                <Users className="size-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Total Investors</p>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-2xl font-bold">{totalInvestors}</span>
+                </div>
+                <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium bg-emerald-500/10 w-fit px-1.5 py-0.5 rounded">
+                  <ArrowUpRight className="size-3" /> 15% <span className="text-muted-foreground bg-transparent font-normal ml-1">vs last month</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Capital Raised */}
+            <div className="p-6 flex items-start gap-4 hover:bg-muted/30 transition-colors">
+              <div className="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center shrink-0">
+                <DollarSign className="size-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Capital Raised</p>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-2xl font-bold">{formatCurrency(capitalRaised)}</span>
+                </div>
+                <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium bg-emerald-500/10 w-fit px-1.5 py-0.5 rounded">
+                  <ArrowUpRight className="size-3" /> 32% <span className="text-muted-foreground bg-transparent font-normal ml-1">vs last month</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Avg Deal Progress */}
+            <div className="p-6 flex items-start gap-4 hover:bg-muted/30 transition-colors">
+              <div className="size-10 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-500 flex items-center justify-center shrink-0">
+                <PieChart className="size-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Avg. Deal Progress</p>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-2xl font-bold">{avgProgress}%</span>
+                </div>
+                <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium bg-emerald-500/10 w-fit px-1.5 py-0.5 rounded">
+                  <ArrowUpRight className="size-3" /> 8% <span className="text-muted-foreground bg-transparent font-normal ml-1">vs last month</span>
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </Card>
+      </motion.div>
     </motion.div>
+    </div>
   )
 }

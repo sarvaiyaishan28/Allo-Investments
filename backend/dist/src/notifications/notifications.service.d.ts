@@ -1,23 +1,7 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 export declare class NotificationsService {
-    private prisma;
-    constructor(prisma: PrismaService);
-    findAll(): Promise<{
-        id: string;
-        createdAt: Date;
-        type: string;
-        title: string;
-        message: string;
-        read: boolean;
-        actionUrl: string | null;
-    }[]>;
-    findOne(id: string): Promise<{
-        id: string;
-        createdAt: Date;
-        type: string;
-        title: string;
-        message: string;
-        read: boolean;
-        actionUrl: string | null;
-    }>;
+    private supabase;
+    constructor(supabase: SupabaseService);
+    findAll(): Promise<any[]>;
+    findOne(id: string): Promise<any>;
 }

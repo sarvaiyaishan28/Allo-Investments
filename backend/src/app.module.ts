@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DealsModule } from './deals/deals.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { SupabaseModule } from './supabase/supabase.module';
 import { InvestmentsModule } from './investments/investments.module';
 import { AssetsModule } from './assets/assets.module';
 import { EntitiesModule } from './entities/entities.module';
@@ -14,7 +15,20 @@ import { LedgerModule } from './ledger/ledger.module';
 import { FeesModule } from './fees/fees.module';
 
 @Module({
-  imports: [DealsModule, PrismaModule, InvestmentsModule, AssetsModule, EntitiesModule, IdentitiesModule, NewsModule, FilesModule, NotificationsModule, LedgerModule, FeesModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DealsModule, 
+    SupabaseModule, 
+    InvestmentsModule, 
+    AssetsModule, 
+    EntitiesModule, 
+    IdentitiesModule, 
+    NewsModule, 
+    FilesModule, 
+    NotificationsModule, 
+    LedgerModule, 
+    FeesModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

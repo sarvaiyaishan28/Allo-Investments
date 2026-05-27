@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CreateDealDialog } from "@/components/shared/create-deal-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -134,7 +135,9 @@ const statusConfig: Record<string, { color: string; bgColor: string }> = {
 }
 
 export function FundManagerPage() {
+  const [activeTab, setActiveTab] = useState("deals")
   const [searchQuery, setSearchQuery] = useState("")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string[]>(["Draft", "Submitted", "Onboarding", "Closing", "Close Requested", "Closed"])
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [selectedDeals, setSelectedDeals] = useState<string[]>([])
@@ -167,11 +170,12 @@ export function FundManagerPage() {
           <h1 className="text-2xl font-bold tracking-tight">Fund Manager Dashboard</h1>
           <p className="text-muted-foreground">Manage your deals, investors, and portfolio</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90" asChild>
-          <Link href="/deals/create">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Deal
-          </Link>
+        <Button 
+          className="bg-primary hover:bg-primary/90" 
+          onClick={() => setIsCreateDialogOpen(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Create Deal
         </Button>
       </div>
 
@@ -390,6 +394,19 @@ export function FundManagerPage() {
           </p>
         </div>
       )}
+
+      {/* Schedule Content */}
+      {activeTab === "schedule" && (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Clock className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium text-foreground">Schedule</h3>
+            <p>Upcoming milestones and tasks will appear here.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <CreateDealDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
     </div>
   )
 }

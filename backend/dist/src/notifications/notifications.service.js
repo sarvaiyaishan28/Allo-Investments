@@ -11,29 +11,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
+const supabase_service_1 = require("../supabase/supabase.service");
 let NotificationsService = class NotificationsService {
-    prisma;
-    constructor(prisma) {
-        this.prisma = prisma;
+    supabase;
+    constructor(supabase) {
+        this.supabase = supabase;
     }
     async findAll() {
-        return this.prisma.notification.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
+        const { data, error } = await this.supabase.client.from('Notification').select('*').order('createdAt', { ascending: false });
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return data;
     }
     async findOne(id) {
-        const record = await this.prisma.notification.findUnique({
-            where: { id },
-        });
-        if (!record)
-            throw new common_1.NotFoundException(`Record with ID ${id} not found`);
-        return record;
+        const { data, error } = await this.supabase.client.from('Notification').select('*').eq('id', id).single();
+        if (error) {
+            if (error.code === 'PGRST116')
+                throw new common_1.NotFoundException(`Record with ID ${id} not found`);
+            throw new common_1.InternalServerErrorException(error.message);
+        }
+        return data;
     }
 };
 exports.NotificationsService = NotificationsService;
 exports.NotificationsService = NotificationsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService])
 ], NotificationsService);
 //# sourceMappingURL=notifications.service.js.map

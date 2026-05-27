@@ -11,29 +11,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LedgerService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
+const supabase_service_1 = require("../supabase/supabase.service");
 let LedgerService = class LedgerService {
-    prisma;
-    constructor(prisma) {
-        this.prisma = prisma;
+    supabase;
+    constructor(supabase) {
+        this.supabase = supabase;
     }
     async findAll() {
-        return this.prisma.ledgerEntry.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
+        const { data, error } = await this.supabase.client.from('LedgerEntry').select('*').order('createdAt', { ascending: false });
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return data;
     }
     async findOne(id) {
-        const record = await this.prisma.ledgerEntry.findUnique({
-            where: { id },
-        });
-        if (!record)
-            throw new common_1.NotFoundException(`Record with ID ${id} not found`);
-        return record;
+        const { data, error } = await this.supabase.client.from('LedgerEntry').select('*').eq('id', id).single();
+        if (error) {
+            if (error.code === 'PGRST116')
+                throw new common_1.NotFoundException(`Record with ID ${id} not found`);
+            throw new common_1.InternalServerErrorException(error.message);
+        }
+        return data;
     }
 };
 exports.LedgerService = LedgerService;
 exports.LedgerService = LedgerService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService])
 ], LedgerService);
 //# sourceMappingURL=ledger.service.js.map

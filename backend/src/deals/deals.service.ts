@@ -1,43 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class DealsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async create(data: any) {
-    return this.prisma.deal.create({ data });
+    const { data: record, error } = await this.supabase.client.from('Deal').insert(data).select().single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return record;
   }
 
   async findAll() {
-    return this.prisma.deal.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const { data, error } = await this.supabase.client.from('Deal').select('*').order('createdAt', { ascending: false });
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
   }
 
   async findOne(id: string) {
-    const deal = await this.prisma.deal.findUnique({
-      where: { id },
-      include: {
-        investments: true,
-        ledgerEntries: true,
-        fees: true,
-      }
-    });
-    if (!deal) throw new NotFoundException(`Deal with ID ${id} not found`);
-    return deal;
+    const { data, error } = await this.supabase.client
+      .from('Deal')
+      .select('*, investments:Investment(*), ledgerEntries:LedgerEntry(*), fees:Fee(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') throw new NotFoundException(`Deal with ID ${id} not found`);
+      throw new InternalServerErrorException(error.message);
+    }
+    return data;
   }
 
   async update(id: string, data: any) {
-    return this.prisma.deal.update({
-      where: { id },
-      data,
-    });
+    const { data: record, error } = await this.supabase.client.from('Deal').update(data).eq('id', id).select().single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return record;
   }
 
   async remove(id: string) {
-    return this.prisma.deal.delete({
-      where: { id },
-    });
+    const { data: record, error } = await this.supabase.client.from('Deal').delete().eq('id', id).select().single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return record;
   }
 }
