@@ -45,10 +45,6 @@ Push the Prisma schema to your database to create the tables:
 npx prisma db push
 ```
 
-*(Optional)* Seed the database with mock data to easily test the application:
-```bash
-npx ts-node prisma/seed.ts
-```
 
 Start the backend development server:
 ```bash
