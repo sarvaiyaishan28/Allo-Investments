@@ -32,6 +32,24 @@ let NewsService = class NewsService {
         }
         return data;
     }
+    async create(data) {
+        const { data: record, error } = await this.supabase.client.from('NewsArticle').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('NewsArticle').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async remove(id) {
+        const { data: record, error } = await this.supabase.client.from('NewsArticle').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
 };
 exports.NewsService = NewsService;
 exports.NewsService = NewsService = __decorate([

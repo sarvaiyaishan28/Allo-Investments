@@ -17,8 +17,31 @@ let InvestmentsService = class InvestmentsService {
     constructor(supabase) {
         this.supabase = supabase;
     }
-    async findAll() {
-        const { data, error } = await this.supabase.client.from('Investment').select('*').order('createdAt', { ascending: false });
+    async findAll(userId) {
+        if (userId) {
+            const { data: identities, error: idError } = await this.supabase.client
+                .from('Identity')
+                .select('id')
+                .eq('userId', userId);
+            if (idError)
+                throw new common_1.InternalServerErrorException(idError.message);
+            const identityIds = identities.map((i) => i.id);
+            if (identityIds.length === 0) {
+                identityIds.push(userId);
+            }
+            const { data, error } = await this.supabase.client
+                .from('Investment')
+                .select('*')
+                .in('investorId', identityIds)
+                .order('createdAt', { ascending: false });
+            if (error)
+                throw new common_1.InternalServerErrorException(error.message);
+            return data;
+        }
+        const { data, error } = await this.supabase.client
+            .from('Investment')
+            .select('*')
+            .order('createdAt', { ascending: false });
         if (error)
             throw new common_1.InternalServerErrorException(error.message);
         return data;
@@ -30,6 +53,24 @@ let InvestmentsService = class InvestmentsService {
                 throw new common_1.NotFoundException(`Record with ID ${id} not found`);
             throw new common_1.InternalServerErrorException(error.message);
         }
+        return data;
+    }
+    async create(data) {
+        const { data: record, error } = await this.supabase.client.from('Investment').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('Investment').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async findByDealId(dealId) {
+        const { data, error } = await this.supabase.client.from('Investment').select('*').eq('dealId', dealId).order('createdAt', { ascending: false });
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
         return data;
     }
 };

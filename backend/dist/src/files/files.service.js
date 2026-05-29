@@ -32,6 +32,24 @@ let FilesService = class FilesService {
         }
         return data;
     }
+    async create(data) {
+        const { data: record, error } = await this.supabase.client.from('FileItem').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('FileItem').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async remove(id) {
+        const { data: record, error } = await this.supabase.client.from('FileItem').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
 };
 exports.FilesService = FilesService;
 exports.FilesService = FilesService = __decorate([

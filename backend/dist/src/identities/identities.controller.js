@@ -15,23 +15,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IdentitiesController = void 0;
 const common_1 = require("@nestjs/common");
 const identities_service_1 = require("./identities.service");
+const supabase_auth_guard_1 = require("../auth/supabase-auth.guard");
 let IdentitiesController = class IdentitiesController {
     identitiesService;
     constructor(identitiesService) {
         this.identitiesService = identitiesService;
     }
-    findAll() {
-        return this.identitiesService.findAll();
+    findAll(req) {
+        return this.identitiesService.findAll(req.user.id);
     }
     findOne(id) {
         return this.identitiesService.findOne(id);
+    }
+    create(req, data) {
+        return this.identitiesService.create({ ...data, userId: req.user.id });
+    }
+    update(id, data) {
+        return this.identitiesService.update(id, data);
+    }
+    remove(id) {
+        return this.identitiesService.remove(id);
     }
 };
 exports.IdentitiesController = IdentitiesController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], IdentitiesController.prototype, "findAll", null);
 __decorate([
@@ -41,8 +52,32 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], IdentitiesController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], IdentitiesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], IdentitiesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], IdentitiesController.prototype, "remove", null);
 exports.IdentitiesController = IdentitiesController = __decorate([
     (0, common_1.Controller)('api/identities'),
+    (0, common_1.UseGuards)(supabase_auth_guard_1.SupabaseAuthGuard),
     __metadata("design:paramtypes", [identities_service_1.IdentitiesService])
 ], IdentitiesController);
 //# sourceMappingURL=identities.controller.js.map

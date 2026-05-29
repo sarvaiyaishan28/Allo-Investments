@@ -184,7 +184,6 @@ export function WalletConnectModal({ open, onOpenChange }: WalletConnectModalPro
                       onClick={() => switchNetwork(n)}
                       className="gap-1"
                     >
-                      <span>{n.icon}</span>
                       {n.name}
                     </Button>
                   ))}

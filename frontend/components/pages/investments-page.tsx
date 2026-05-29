@@ -48,7 +48,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { fetchInvestments, fetchDeals } from '@/lib/api-client'
-import type { InvestmentStatus, Investment } from '@/lib/types'
+import type { InvestmentStatus, Investment, Deal } from '@/lib/types'
 
 function formatCurrency(amount: number): string {
   if (amount >= 1000000) {
@@ -234,8 +234,8 @@ export function InvestmentsPage() {
     return { totalInvested, totalWired, count: investments.length, signedCount }
   }, [investments])
 
-  // Calculate estimated returns (mock data)
-  const estimatedReturns = stats.totalInvested * 0.15
+  // TODO: Fetch from actual performance API when available
+  const estimatedReturns = 0
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -292,9 +292,9 @@ export function InvestmentsPage() {
                 <div className="min-w-0 space-y-1">
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Est. Returns</p>
                   <p className="text-lg font-semibold text-success">{formatCurrency(estimatedReturns)}</p>
-                  <p className="text-[10px] text-success flex items-center gap-0.5">
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                     <ArrowUpRight className="size-2.5" />
-                    +15%
+                    +0%
                   </p>
                 </div>
                 <div className="size-8 rounded-md bg-success/10 flex items-center justify-center shrink-0">

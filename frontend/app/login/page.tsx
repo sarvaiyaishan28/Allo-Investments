@@ -55,7 +55,7 @@ function LoginPageContent() {
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Use auth provider login
-    const success = await login(email, password)
+    const success = await login(email.trim(), password)
     if (success) {
       // Redirect to the original page or dashboard
       const redirectPath = searchParams.get('redirect') || '/'

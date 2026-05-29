@@ -54,6 +54,7 @@ import {
   AlertDescription,
 } from '@/components/ui/alert'
 import type { Deal, DealStatus, Entity, EntityType, EntityStructure, Asset, AssetType, SecurityType } from '@/lib/types'
+import { updateDeal } from '@/lib/api-client'
 
 // US States for entity formation
 const US_STATES = [
@@ -861,12 +862,7 @@ export function DealAdminPage({ deal: initialDeal }: DealAdminPageProps) {
     setDeal(prev => ({ ...prev, ...updates }))
     try {
       if (!deal.id.startsWith('deal_')) {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
-        const res = await fetch(`${baseUrl}/deals/${deal.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates)
-        })
+        await updateDeal(deal.id, updates)
       }
     } catch (e) {
       console.error('Failed to save updates', e)
@@ -895,13 +891,8 @@ export function DealAdminPage({ deal: initialDeal }: DealAdminPageProps) {
     setIsSubmitting(true)
     try {
       if (!deal.id.startsWith('deal_')) {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
-        const res = await fetch(`${baseUrl}/deals/${deal.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'submitted' })
-        })
-        if (res.ok) {
+        const res = await updateDeal(deal.id, { status: 'submitted' })
+        if (res) {
           setDeal(prev => ({ ...prev, status: 'submitted' }))
           router.push('/deals')
         } else {

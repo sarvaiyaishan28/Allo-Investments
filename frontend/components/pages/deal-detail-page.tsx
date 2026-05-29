@@ -139,9 +139,11 @@ function getInvestmentStatusBadge(status: InvestmentStatus) {
   const config: Record<InvestmentStatus, { label: string; className: string; icon: React.ElementType }> = {
     invited: { label: 'Invited', className: 'bg-muted text-muted-foreground', icon: Clock },
     viewed: { label: 'Viewed', className: 'bg-sky-500/10 text-sky-600', icon: Clock },
+    committed: { label: 'Committed', className: 'bg-primary/10 text-primary', icon: CheckCircle2 },
     signed: { label: 'Signed', className: 'bg-primary/10 text-primary', icon: CheckCircle2 },
     wired: { label: 'Wired', className: 'bg-sky-500/10 text-sky-600', icon: CheckCircle2 },
     complete: { label: 'Complete', className: 'bg-success/10 text-success', icon: CheckCircle2 },
+    completed: { label: 'Completed', className: 'bg-success/10 text-success', icon: CheckCircle2 },
     declined: { label: 'Declined', className: 'bg-destructive/10 text-destructive', icon: AlertCircle },
   }
   const c = config[status]

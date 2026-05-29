@@ -11,11 +11,10 @@ interface DealPageWrapperProps {
 }
 
 export function DealPageWrapper({ deal }: DealPageWrapperProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   
   // If the user is logged in, they are the admin/manager of deals they created
-  // In this demo, 'user_1' is the fund manager ID for newly created deals.
-  const isAdmin = isAuthenticated && deal.fundManagerId === 'user_1'
+  const isAdmin = isAuthenticated && user && deal.fundManagerId === user.id
 
   if (isAdmin) {
     return <DealDetailPage deal={deal} isAdmin={isAdmin} />

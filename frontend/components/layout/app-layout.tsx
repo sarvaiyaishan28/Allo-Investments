@@ -35,7 +35,6 @@ import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { useWallet } from '@/components/providers/wallet-provider'
 import { useAuth } from '@/components/providers/auth-provider'
-import { currentUser } from '@/lib/mock-data'
 import { fetchNotifications } from '@/lib/api-client'
 import type { Notification } from '@/lib/types'
 import {
@@ -137,7 +136,7 @@ function NavLink({
 
 function DesktopSidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (v: boolean) => void }) {
   const pathname = usePathname()
-  const { logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated } = useAuth()
 
   const visibleMainNav = mainNavItems.filter(item => 
     isAuthenticated || ['/', '/deals'].includes(item.href)
@@ -254,14 +253,14 @@ function DesktopSidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCo
                 >
                   <Avatar className="size-8 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                      {currentUser.name.charAt(0)}
+                      {user?.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {!collapsed && (
                     <>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="text-sm font-medium truncate">{currentUser.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{currentUser.email}</p>
+                        <p className="text-sm font-medium truncate">{user?.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                       </div>
                       <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
                     </>
@@ -271,8 +270,8 @@ function DesktopSidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCo
               <DropdownMenuContent align={collapsed ? "center" : "end"} side="top" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{currentUser.name}</span>
-                    <span className="text-xs text-muted-foreground font-normal">{currentUser.email}</span>
+                    <span className="text-sm font-medium">{user?.name}</span>
+                    <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -417,7 +416,7 @@ function MobileHeader() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const { isConnected, shortAddress, openModal } = useWallet()
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [open, setOpen] = React.useState(false)
 
   const visibleMainNav = mainNavItems.filter(item => 
@@ -527,12 +526,12 @@ function MobileHeader() {
                 <div className="flex items-center gap-3 px-3 py-2.5 pt-3 border-t">
                   <Avatar className="size-8">
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                      {currentUser.name.charAt(0)}
+                      {user?.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{currentUser.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+                    <p className="text-sm font-medium truncate">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                 </div>
               ) : (
@@ -591,7 +590,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname()
   const { isModalOpen, closeModal } = useWallet()
-  const { logout, isAuthenticated, isLoading, requireAuth } = useAuth()
+  const { user, logout, isAuthenticated, isLoading, requireAuth } = useAuth()
   const [collapsed, setCollapsed] = React.useState(false)
 
   // Route Protection Guard

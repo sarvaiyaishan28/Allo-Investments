@@ -4,4 +4,7 @@ export declare class FeesService {
     constructor(supabase: SupabaseService);
     findAll(): Promise<any[]>;
     findOne(id: string): Promise<any>;
+    create(data: any): Promise<any>;
+    update(id: string, data: any): Promise<any>;
+    remove(id: string): Promise<any>;
 }

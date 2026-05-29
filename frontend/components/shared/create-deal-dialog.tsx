@@ -27,9 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { identities } from '@/lib/mock-data'
-
-import { createDeal } from '@/lib/api-client'
+import { createDeal, fetchIdentities } from '@/lib/api-client'
 import { useAuth } from '@/components/providers/auth-provider'
 
 interface CreateDealDialogProps {
@@ -45,6 +43,13 @@ export function CreateDealDialog({ open, onOpenChange }: CreateDealDialogProps) 
   const [dealName, setDealName] = React.useState('')
   const [identityId, setIdentityId] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [identities, setIdentities] = React.useState<any[]>([])
+
+  React.useEffect(() => {
+    if (open) {
+      fetchIdentities().then(setIdentities).catch(console.error)
+    }
+  }, [open])
 
   // Reset state when opened
   React.useEffect(() => {

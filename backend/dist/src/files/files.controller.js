@@ -26,6 +26,15 @@ let FilesController = class FilesController {
     findOne(id) {
         return this.filesService.findOne(id);
     }
+    create(data) {
+        return this.filesService.create(data);
+    }
+    update(id, data) {
+        return this.filesService.update(id, data);
+    }
+    remove(id) {
+        return this.filesService.remove(id);
+    }
 };
 exports.FilesController = FilesController;
 __decorate([
@@ -41,6 +50,28 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], FilesController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], FilesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], FilesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], FilesController.prototype, "remove", null);
 exports.FilesController = FilesController = __decorate([
     (0, common_1.Controller)('api/files'),
     __metadata("design:paramtypes", [files_service_1.FilesService])

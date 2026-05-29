@@ -59,70 +59,7 @@ interface Event {
   description?: string
 }
 
-const mockEvents: Event[] = [
-  {
-    id: '1',
-    title: 'Investor Call - Quantum AI Fund',
-    date: new Date(),
-    startTime: '10:00 AM',
-    endTime: '11:00 AM',
-    type: 'call',
-    location: 'Zoom',
-    attendees: ['Alex Martinez', 'Sarah Mitchell'],
-    description: 'Quarterly update call with Quantum AI Fund investors',
-  },
-  {
-    id: '2',
-    title: 'Due Diligence Review',
-    date: new Date(),
-    startTime: '2:00 PM',
-    endTime: '3:30 PM',
-    type: 'meeting',
-    location: 'Conference Room A',
-    attendees: ['Marcus Johnson', 'Emily Rodriguez'],
-    description: 'Review due diligence documents for Green Energy SPV',
-  },
-  {
-    id: '3',
-    title: 'K-1 Filing Deadline',
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    startTime: '11:59 PM',
-    endTime: '11:59 PM',
-    type: 'deadline',
-    description: 'Tax filing deadline for 2024 K-1 forms',
-  },
-  {
-    id: '4',
-    title: 'Board Meeting - TechFund Holdings',
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    startTime: '9:00 AM',
-    endTime: '12:00 PM',
-    type: 'meeting',
-    location: 'Main Office',
-    attendees: ['David Kim', 'Sarah Mitchell', 'Alex Martinez'],
-    description: 'Annual board meeting for TechFund Holdings LP',
-  },
-  {
-    id: '5',
-    title: 'Subscription Agreement Review',
-    date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    startTime: '3:00 PM',
-    endTime: '4:00 PM',
-    type: 'call',
-    location: 'Google Meet',
-    attendees: ['Legal Team'],
-    description: 'Review new subscription agreements with legal counsel',
-  },
-  {
-    id: '6',
-    title: 'Capital Call Reminder',
-    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    startTime: '9:00 AM',
-    endTime: '9:00 AM',
-    type: 'reminder',
-    description: 'Send capital call notices to investors',
-  },
-]
+const events: Event[] = []
 
 const eventTypeConfig = {
   meeting: { color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: Users },
@@ -162,21 +99,21 @@ export function SchedulePage() {
   const allDays = [...prevMonthDays, ...monthDays, ...nextMonthDays]
 
   const getEventsForDate = (date: Date) => {
-    return mockEvents.filter(event => isSameDay(event.date, date))
+    return events.filter(event => isSameDay(event.date, date))
   }
 
   const selectedDateEvents = getEventsForDate(selectedDate)
 
-  const upcomingEvents = mockEvents
+  const upcomingEvents = events
     .filter(event => event.date >= new Date())
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 5)
 
   const stats = {
-    totalEvents: mockEvents.length,
-    thisMonth: mockEvents.filter(e => isSameMonth(e.date, currentMonth)).length,
-    meetings: mockEvents.filter(e => e.type === 'meeting').length,
-    deadlines: mockEvents.filter(e => e.type === 'deadline').length,
+    totalEvents: events.length,
+    thisMonth: events.filter(e => isSameMonth(e.date, currentMonth)).length,
+    meetings: events.filter(e => e.type === 'meeting').length,
+    deadlines: events.filter(e => e.type === 'deadline').length,
   }
 
   return (

@@ -26,6 +26,15 @@ let NotificationsController = class NotificationsController {
     findOne(id) {
         return this.notificationsService.findOne(id);
     }
+    create(data) {
+        return this.notificationsService.create(data);
+    }
+    update(id, data) {
+        return this.notificationsService.update(id, data);
+    }
+    remove(id) {
+        return this.notificationsService.remove(id);
+    }
 };
 exports.NotificationsController = NotificationsController;
 __decorate([
@@ -41,6 +50,28 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], NotificationsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "remove", null);
 exports.NotificationsController = NotificationsController = __decorate([
     (0, common_1.Controller)('api/notifications'),
     __metadata("design:paramtypes", [notifications_service_1.NotificationsService])

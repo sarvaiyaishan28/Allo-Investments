@@ -32,6 +32,24 @@ let FeesService = class FeesService {
         }
         return data;
     }
+    async create(data) {
+        const { data: record, error } = await this.supabase.client.from('Fee').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('Fee').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async remove(id) {
+        const { data: record, error } = await this.supabase.client.from('Fee').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
 };
 exports.FeesService = FeesService;
 exports.FeesService = FeesService = __decorate([

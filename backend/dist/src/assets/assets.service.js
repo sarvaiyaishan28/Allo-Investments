@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetsService = void 0;
 const common_1 = require("@nestjs/common");
+const crypto_1 = require("crypto");
 const supabase_service_1 = require("../supabase/supabase.service");
 let AssetsService = class AssetsService {
     supabase;
@@ -31,6 +32,26 @@ let AssetsService = class AssetsService {
             throw new common_1.InternalServerErrorException(error.message);
         }
         return data;
+    }
+    async create(data) {
+        if (!data.id)
+            data.id = (0, crypto_1.randomUUID)();
+        const { data: record, error } = await this.supabase.client.from('Asset').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('Asset').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async remove(id) {
+        const { data: record, error } = await this.supabase.client.from('Asset').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
     }
 };
 exports.AssetsService = AssetsService;

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { 
@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { CreateDealDialog } from "@/components/shared/create-deal-dialog"
+import { fetchDeals } from "@/lib/api-client"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,79 +53,6 @@ interface FundManagerDeal {
   bankAccount: boolean
 }
 
-const mockDeals: FundManagerDeal[] = [
-  {
-    id: "1",
-    name: "Biotech Innovation Fund",
-    entity: "BioVenture Capital LLC",
-    status: "Closed",
-    type: "SPV",
-    managementFee: "0%",
-    carry: "0%",
-    totalSigned: 30,
-    totalWired: 0,
-    investors: 1,
-    legals: true,
-    bankAccount: true,
-  },
-  {
-    id: "2",
-    name: "Green Energy SPV",
-    entity: "Sustainable Power Holdings LLC",
-    status: "Onboarding",
-    type: "SPV",
-    managementFee: "0%",
-    carry: "0%",
-    totalSigned: 27,
-    totalWired: 0,
-    investors: 1,
-    legals: true,
-    bankAccount: true,
-  },
-  {
-    id: "3",
-    name: "Quantum AI Fund Series A",
-    entity: "Quantum Ventures Series A LLC",
-    status: "Onboarding",
-    type: "SPV",
-    managementFee: "1%",
-    carry: "0%",
-    totalSigned: 2239085,
-    totalWired: 80200,
-    investors: 7,
-    legals: true,
-    bankAccount: true,
-  },
-  {
-    id: "4",
-    name: "AI Infrastructure Fund",
-    entity: "TechVentures LP",
-    status: "Closing",
-    type: "FUND",
-    managementFee: "2%",
-    carry: "20%",
-    totalSigned: 5000000,
-    totalWired: 3500000,
-    investors: 45,
-    legals: true,
-    bankAccount: true,
-  },
-  {
-    id: "5",
-    name: "Series B Extension",
-    entity: "Growth Capital LLC",
-    status: "Draft",
-    type: "SPV",
-    managementFee: "1%",
-    carry: "15%",
-    totalSigned: 0,
-    totalWired: 0,
-    investors: 0,
-    legals: false,
-    bankAccount: false,
-  },
-]
-
 const statusConfig: Record<string, { color: string; bgColor: string }> = {
   "Draft": { color: "text-muted-foreground", bgColor: "bg-muted" },
   "Submitted": { color: "text-amber-600", bgColor: "bg-amber-500" },
@@ -141,12 +70,39 @@ export function FundManagerPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>(["Draft", "Submitted", "Onboarding", "Closing", "Close Requested", "Closed"])
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [selectedDeals, setSelectedDeals] = useState<string[]>([])
+  const [deals, setDeals] = useState<FundManagerDeal[]>([])
 
-  const totalAUM = mockDeals.reduce((acc, deal) => acc + deal.totalWired, 0)
-  const totalInvestors = mockDeals.reduce((acc, deal) => acc + deal.investors, 0)
-  const totalDeals = mockDeals.length
+  useEffect(() => {
+    async function loadDeals() {
+      try {
+        const data = await fetchDeals()
+        const mappedDeals = data.map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          entity: d.entityName,
+          status: d.status,
+          type: d.type.toUpperCase(),
+          managementFee: `${d.managementFee}%`,
+          carry: `${d.carry}%`,
+          totalSigned: d.totalSigned || 0,
+          totalWired: d.totalWired || 0,
+          investors: d.investorCount || 0,
+          legals: true, // Placeholder until schema supports it
+          bankAccount: true, // Placeholder until schema supports it
+        }))
+        setDeals(mappedDeals)
+      } catch (err) {
+        console.error("Failed to load deals:", err)
+      }
+    }
+    loadDeals()
+  }, [])
 
-  const filteredDeals = mockDeals.filter((deal) => {
+  const totalAUM = deals.reduce((acc, deal) => acc + deal.totalWired, 0)
+  const totalInvestors = deals.reduce((acc, deal) => acc + deal.investors, 0)
+  const totalDeals = deals.length
+
+  const filteredDeals = deals.filter((deal) => {
     const matchesSearch = deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           deal.entity.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter.includes(deal.status)
@@ -347,7 +303,7 @@ export function FundManagerPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`${statusConfig[deal.status].bgColor} text-white border-0`}>
+                    <Badge className={`${(statusConfig[deal.status] || statusConfig["Test"]).bgColor} text-white border-0`}>
                       {deal.status}
                     </Badge>
                   </TableCell>

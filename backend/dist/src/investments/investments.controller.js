@@ -15,25 +15,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvestmentsController = void 0;
 const common_1 = require("@nestjs/common");
 const investments_service_1 = require("./investments.service");
+const supabase_auth_guard_1 = require("../auth/supabase-auth.guard");
 let InvestmentsController = class InvestmentsController {
     investmentsService;
     constructor(investmentsService) {
         this.investmentsService = investmentsService;
     }
-    findAll() {
-        return this.investmentsService.findAll();
+    findAll(req) {
+        return this.investmentsService.findAll(req.user.id);
+    }
+    findByDealId(dealId) {
+        return this.investmentsService.findByDealId(dealId);
     }
     findOne(id) {
         return this.investmentsService.findOne(id);
+    }
+    create(req, data) {
+        return this.investmentsService.create(data);
+    }
+    update(id, data) {
+        return this.investmentsService.update(id, data);
     }
 };
 exports.InvestmentsController = InvestmentsController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], InvestmentsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('deal/:dealId'),
+    __param(0, (0, common_1.Param)('dealId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], InvestmentsController.prototype, "findByDealId", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -41,8 +59,25 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], InvestmentsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], InvestmentsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], InvestmentsController.prototype, "update", null);
 exports.InvestmentsController = InvestmentsController = __decorate([
     (0, common_1.Controller)('api/investments'),
+    (0, common_1.UseGuards)(supabase_auth_guard_1.SupabaseAuthGuard),
     __metadata("design:paramtypes", [investments_service_1.InvestmentsService])
 ], InvestmentsController);
 //# sourceMappingURL=investments.controller.js.map

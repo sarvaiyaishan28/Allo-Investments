@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DealsController = void 0;
 const common_1 = require("@nestjs/common");
 const deals_service_1 = require("./deals.service");
+const public_decorator_1 = require("../auth/public.decorator");
 let DealsController = class DealsController {
     dealsService;
     constructor(dealsService) {
@@ -45,12 +46,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], DealsController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], DealsController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

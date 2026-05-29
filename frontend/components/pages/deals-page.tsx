@@ -15,10 +15,15 @@ import {
   ChevronDown,
   Building2,
   Users,
-  Plus,
-  Calendar,
   Asterisk,
   Activity,
+  ChevronLeft,
+  ChevronRight,
+  Target,
+  CircleDollarSign,
+  BarChart3,
+  Plus,
+  Calendar,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -142,74 +147,132 @@ function ValuePropsFooter() {
 }
 
 function PremiumDealCard({ deal, index }: { deal: Deal, index: number }) {
-  // Determine accent color based on index for variety
   const accents = [
-    { text: 'text-amber-500', border: 'border-amber-500/50', bg: 'bg-amber-500/10', hover: 'hover:bg-amber-500/20' },
-    { text: 'text-purple-500', border: 'border-purple-500/50', bg: 'bg-purple-500/10', hover: 'hover:bg-purple-500/20' },
-    { text: 'text-blue-500', border: 'border-blue-500/50', bg: 'bg-blue-500/10', hover: 'hover:bg-blue-500/20' },
-    { text: 'text-emerald-500', border: 'border-emerald-500/50', bg: 'bg-emerald-500/10', hover: 'hover:bg-emerald-500/20' },
+    {
+      bgTop: 'bg-[#fff5f0] dark:bg-[#fff5f0]/5',
+      avatarBg: 'bg-[#ff5a1f]',
+      textPrimary: 'text-[#ff5a1f]',
+      borderSoft: 'border-[#ff5a1f]/20',
+      pillBg: 'bg-[#fff5f0] dark:bg-[#fff5f0]/10',
+    },
+    {
+      bgTop: 'bg-[#f8f5ff] dark:bg-[#f8f5ff]/5',
+      avatarBg: 'bg-[#8b5cf6]',
+      textPrimary: 'text-[#8b5cf6]',
+      borderSoft: 'border-[#8b5cf6]/20',
+      pillBg: 'bg-[#f8f5ff] dark:bg-[#f8f5ff]/10',
+    },
+    {
+      bgTop: 'bg-[#f0f6ff] dark:bg-[#f0f6ff]/5',
+      avatarBg: 'bg-[#3b82f6]',
+      textPrimary: 'text-[#3b82f6]',
+      borderSoft: 'border-[#3b82f6]/20',
+      pillBg: 'bg-[#f0f6ff] dark:bg-[#f0f6ff]/10',
+    }
   ]
   const accent = accents[index % accents.length]
+  const progress = Math.min((deal.totalWired / deal.targetRaise) * 100, 100) || 0
 
   return (
     <Link href={`/deals/${deal.id}`}>
-      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 border-border/50 group bg-card">
-        <CardContent className="p-6 flex flex-col h-full">
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 border-border/50 group bg-card rounded-2xl">
+        {/* Top Colored Section */}
+        <div className={cn("p-6 pb-8", accent.bgTop)}>
           {/* Header */}
-          <div className="flex justify-between items-start mb-4">
-            <Avatar className="size-12 rounded-xl bg-zinc-900 text-white shrink-0 border shadow-sm">
-              <AvatarFallback className="text-lg font-bold bg-zinc-900 text-white rounded-xl">
+          <div className="flex justify-between items-start mb-6">
+            <Avatar className={cn("size-12 rounded-xl text-white shrink-0 border-none shadow-sm", accent.avatarBg)}>
+              <AvatarFallback className={cn("text-xl font-bold text-white rounded-xl bg-transparent")}>
                 {deal.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <Badge variant="secondary" className={cn("text-[11px] font-medium capitalize px-2.5 py-0.5 border-transparent", accent.bg, accent.text)}>
-              {deal.status.replace('_', ' ')}
-            </Badge>
-          </div>
-
-          {/* Titles */}
-          <div className="mb-4">
-            <h3 className="font-bold text-xl tracking-tight mb-1 text-foreground">{deal.name}</h3>
-            <p className="text-sm text-muted-foreground font-medium">{deal.entityName}</p>
-          </div>
-
-          {/* Description */}
-          <p className="text-sm text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
-            {deal.memo || "Exclusive investment opportunity offering strategic exposure to early-stage growth and high-potential market expansion."}
-          </p>
-
-          {/* Data Block */}
-          <div className="bg-amber-500/5 dark:bg-muted/30 rounded-xl p-4 mb-6 mt-auto">
-            <div className="space-y-3 text-[13px]">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Target Raise</span>
-                <span className="font-semibold text-foreground">{formatCurrency(deal.targetRaise)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Min Invest</span>
-                <span className="font-semibold text-foreground">{formatCurrency(deal.minimumInvestment)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Signed</span>
-                <span className="font-semibold text-foreground">{formatCurrency(deal.totalSigned)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase tracking-wider text-[11px]">Round Date</span>
-                <span className="font-semibold text-foreground">{formatDate(deal.estimatedClosingDate)}</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className={cn("size-1.5 rounded-full", accent.avatarBg)} />
+              <span className={cn("text-xs font-semibold capitalize", accent.textPrimary)}>
+                {deal.status.replace('_', ' ')}
+              </span>
             </div>
           </div>
 
+          {/* Titles */}
+          <div>
+            <h3 className="font-bold text-xl tracking-tight mb-1 text-foreground line-clamp-1">{deal.name}</h3>
+            <p className="text-sm text-muted-foreground font-medium mb-4 line-clamp-1">{deal.entityName}</p>
+            <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed h-[38px]">
+              {deal.memo || "Exclusive investment opportunity offering strategic exposure to early-stage growth and high-potential market expansion."}
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 bg-card border-t border-border/40">
+          {/* Target Raise */}
+          <div className="p-4 border-b border-r border-border/40">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Target className={cn("size-3.5", accent.textPrimary)} />
+              <span className="text-[11px] text-muted-foreground font-medium">Target Raise</span>
+            </div>
+            <div className="font-bold text-base">{formatCurrency(deal.targetRaise)}</div>
+          </div>
+          {/* Min Investment */}
+          <div className="p-4 border-b border-border/40">
+            <div className="flex items-center gap-1.5 mb-1">
+              <CircleDollarSign className={cn("size-3.5", accent.textPrimary)} />
+              <span className="text-[11px] text-muted-foreground font-medium">Min Investment</span>
+            </div>
+            <div className="font-bold text-base">{formatCurrency(deal.minimumInvestment)}</div>
+          </div>
+          {/* Signed */}
+          <div className="p-4 border-b border-r border-border/40">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Users className={cn("size-3.5", accent.textPrimary)} />
+              <span className="text-[11px] text-muted-foreground font-medium">Signed</span>
+            </div>
+            <div className="font-bold text-base">{formatCurrency(deal.totalSigned)}</div>
+          </div>
+          {/* Round Date */}
+          <div className="p-4 border-b border-border/40">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Calendar className={cn("size-3.5", accent.textPrimary)} />
+              <span className="text-[11px] text-muted-foreground font-medium">Round Date</span>
+            </div>
+            <div className="font-bold text-base">{formatDate(deal.estimatedClosingDate)}</div>
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="p-5 bg-card mt-auto space-y-5">
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Badge variant="secondary" className="text-[11px] font-medium bg-amber-500/5 dark:bg-muted/50 text-muted-foreground border-transparent uppercase hover:bg-amber-500/10 transition-colors">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className={cn("text-[10px] font-semibold border-transparent uppercase transition-colors px-2.5 py-0.5", accent.pillBg, accent.textPrimary)}>
               {deal.type}
             </Badge>
-            <Badge variant="secondary" className="text-[11px] font-medium bg-amber-500/5 dark:bg-muted/50 text-muted-foreground border-transparent hover:bg-amber-500/10 transition-colors">
+            <Badge variant="secondary" className={cn("text-[10px] font-semibold border-transparent transition-colors px-2.5 py-0.5", accent.pillBg, accent.textPrimary)}>
               Accredited only
             </Badge>
           </div>
-        </CardContent>
+
+          {/* Progress */}
+          <div className="flex items-center justify-between gap-4 pt-2">
+            <div className="flex items-center gap-3 flex-1">
+              <div className={cn("size-10 rounded-full flex items-center justify-center shrink-0", accent.pillBg)}>
+                <BarChart3 className={cn("size-5", accent.textPrimary)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Raise Progress</div>
+                <div className="flex items-center gap-2">
+                  <span className={cn("font-bold text-base", accent.textPrimary)}>{Math.round(progress)}%</span>
+                  <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
+                    <div className={cn("h-full rounded-full transition-all duration-500", accent.avatarBg)} style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className={cn("size-8 rounded-full border flex items-center justify-center shrink-0 transition-colors group-hover:bg-muted/50", accent.borderSoft)}>
+              <ChevronRight className={cn("size-4", accent.textPrimary)} />
+            </div>
+          </div>
+        </div>
       </Card>
     </Link>
   )
@@ -221,8 +284,9 @@ export function DealsPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [selectedType, setSelectedType] = React.useState<string>('all')
   const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('grid')
-  const [ownershipFilter, setOwnershipFilter] = React.useState<'my_deals' | 'discover'>('discover')
+  const [ownershipFilter, setOwnershipFilter] = React.useState<'all' | 'my_deals' | 'discover'>('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
+  const [currentPage, setCurrentPage] = React.useState(1)
 
   const { requireAuth, user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -253,7 +317,7 @@ export function DealsPage() {
       const matchesType = selectedType === 'all' || deal.productType === selectedType || deal.type === selectedType
       
       let matchesOwnership = true
-      if (isAuthenticated && user) {
+      if (isAuthenticated && user && ownershipFilter !== 'all') {
         if (ownershipFilter === 'my_deals') {
           matchesOwnership = deal.fundManagerId === user.id
         } else if (ownershipFilter === 'discover') {
@@ -264,6 +328,14 @@ export function DealsPage() {
       return matchesSearch && matchesType && matchesOwnership
     })
   }, [deals, searchQuery, selectedType, ownershipFilter, isAuthenticated, user])
+
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedType, viewMode, ownershipFilter])
+
+  const itemsPerPage = viewMode === 'grid' ? 6 : 10
+  const totalPages = Math.ceil(filteredDeals.length / itemsPerPage)
+  const paginatedDeals = filteredDeals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading curated opportunities...</div>
@@ -297,6 +369,12 @@ export function DealsPage() {
           {isAuthenticated && (
             <>
               <div className="flex items-center bg-muted/50 p-1 rounded-full border">
+                <button 
+                  onClick={() => setOwnershipFilter('all')} 
+                  className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all", ownershipFilter === 'all' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  All
+                </button>
                 <button 
                   onClick={() => setOwnershipFilter('my_deals')} 
                   className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all", ownershipFilter === 'my_deals' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
@@ -376,7 +454,7 @@ export function DealsPage() {
       {/* Grid View */}
       {viewMode === 'grid' && (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredDeals.map((deal, idx) => (
+          {paginatedDeals.map((deal, idx) => (
             <motion.div 
               key={deal.id}
               initial={{ opacity: 0, y: 20 }}
@@ -406,7 +484,7 @@ export function DealsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDeals.map((deal) => (
+                  {paginatedDeals.map((deal) => (
                     <TableRow key={deal.id} className="group hover:bg-muted/50">
                       <TableCell>
                         <Link href={`/deals/${deal.id}`} className="flex items-center gap-3 hover:text-amber-500 transition-colors">
@@ -455,6 +533,31 @@ export function DealsPage() {
             </div>
           </Card>
         </motion.div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="size-4 mr-1" /> Previous
+          </Button>
+          <span className="text-sm font-medium text-muted-foreground mx-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next <ChevronRight className="size-4 ml-1" />
+          </Button>
+        </div>
       )}
 
       {filteredDeals.length === 0 && (

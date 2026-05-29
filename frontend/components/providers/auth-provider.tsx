@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { apiFetch } from '@/lib/api-client'
 
 interface User {
   id: string
@@ -15,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
+  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   requireAuth: (redirectPath?: string) => boolean
   showLoginRequired: boolean
@@ -35,35 +38,111 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing session on mount
   React.useEffect(() => {
-    const storedUser = localStorage.getItem('allo_user')
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch {
-        localStorage.removeItem('allo_user')
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        // Fetch extended user profile from backend
+        try {
+          const profile = await apiFetch('/users/me')
+          if (profile) setUser(profile)
+        } catch (e) {
+          console.error('Failed to fetch user profile:', e)
+        }
       }
+      setIsLoading(false)
     }
-    setIsLoading(false)
+
+    initAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        try {
+          let profile = await apiFetch('/users/me').catch(() => null)
+          
+          if (!profile) {
+            try {
+              const name = session.user.user_metadata?.name || 'Unknown'
+              await apiFetch('/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, role: 'investor' })
+              })
+              profile = await apiFetch('/users/me').catch(() => null)
+            } catch (createError) {
+              console.error('Failed to create user profile during onAuthStateChange:', createError)
+            }
+          }
+          
+          if (profile) setUser(profile)
+        } catch (e) {
+          console.error('Failed to fetch user profile:', e)
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
+  const signup = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name } // Store name in user metadata for later profile creation
+        }
+      })
+      if (error) throw error
+      return { success: true }
+    } catch (error: any) {
+      console.error('Signup failed:', error.message)
+      return { success: false, error: error.message }
+    }
+  }
+
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock validation
-    if (email === 'alex@allo.com' && password === 'password') {
-      const userData: User = {
-        id: '1',
-        name: 'Alex',
-        email: 'alex@allo.com',
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      
+      if (data.session?.user) {
+        // Fetch profile
+        let profile = await apiFetch('/users/me').catch(() => null)
+        
+        // Profile doesn't exist yet! We must create it.
+        // This happens on the very first login after email verification.
+        if (!profile) {
+          try {
+            const name = data.session.user.user_metadata?.name || 'Unknown'
+            await apiFetch('/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, role: 'investor' })
+            })
+            profile = await apiFetch('/users/me').catch(() => null)
+          } catch (createError) {
+            console.error('Failed to create user profile during first login:', createError)
+          }
+        }
+
+        if (profile) {
+          setUser(profile)
+          return true
+        }
       }
-      setUser(userData)
-      localStorage.setItem('allo_user', JSON.stringify(userData))
-      return true
+    } catch (error: any) {
+      console.error('Login failed:', error.message)
     }
     return false
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut()
     setUser(null)
-    localStorage.removeItem('allo_user')
     router.push('/')
   }
 
@@ -83,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        signup,
         logout,
         requireAuth,
         showLoginRequired,

@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { DealsService } from './deals.service';
+import { Public } from '../auth/public.decorator';
 
 @Controller('api/deals')
 export class DealsController {
@@ -10,11 +11,13 @@ export class DealsController {
     return this.dealsService.create(createDealDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.dealsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.dealsService.findOne(id);

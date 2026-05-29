@@ -186,7 +186,7 @@ export function NewsPage() {
         >
           <h1 className="text-3xl font-bold mb-2">News</h1>
           <p className="text-muted-foreground">
-            SpaceX faces public offering anticipation and legal issues • Brockman reveals $30 billion stake in OpenAI • Also: Anthropic faces EU pressure and cybersecurity challenges
+            Stay up to date with the latest developments in the private markets.
           </p>
         </motion.div>
 

@@ -32,6 +32,24 @@ let LedgerService = class LedgerService {
         }
         return data;
     }
+    async create(data) {
+        const { data: record, error } = await this.supabase.client.from('LedgerEntry').insert(data).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async update(id, data) {
+        const { data: record, error } = await this.supabase.client.from('LedgerEntry').update(data).eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
+    async remove(id) {
+        const { data: record, error } = await this.supabase.client.from('LedgerEntry').delete().eq('id', id).select().single();
+        if (error)
+            throw new common_1.InternalServerErrorException(error.message);
+        return record;
+    }
 };
 exports.LedgerService = LedgerService;
 exports.LedgerService = LedgerService = __decorate([

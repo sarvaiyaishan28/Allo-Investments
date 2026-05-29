@@ -44,7 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { fetchEntities } from "@/lib/api-client"
+import { fetchEntities, createEntities, deleteEntities, fetchDeals } from "@/lib/api-client"
 
 const statusConfig = {
   Active: { color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", icon: CheckCircle2 },
@@ -60,12 +60,59 @@ const getEntityStatusConfig = (status: string) => {
 
 export function EntitiesPage() {
   const [entities, setEntities] = useState<any[]>([])
+  const [deals, setDeals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'llc',
+    state: 'delaware',
+    ein: '',
+    dealId: ''
+  })
+
+  const handleCreateEntity = async () => {
+    if (!formData.name) return;
+    try {
+      setIsSubmitting(true)
+      const newEntity = await createEntities({
+        name: formData.name,
+        type: formData.type,
+        state: formData.state,
+        ein: formData.ein || null,
+        structure: 'independent',
+        address: ''
+      })
+      setEntities([newEntity, ...entities])
+      setIsCreateOpen(false)
+      setFormData({
+        name: '',
+        type: 'llc',
+        state: 'delaware',
+        ein: '',
+        dealId: ''
+      })
+    } catch (err) {
+      console.error('Failed to create entity:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteEntity = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this entity?')) return;
+    try {
+      await deleteEntities(id)
+      setEntities(entities.filter(e => e.id !== id))
+    } catch (err) {
+      console.error('Failed to delete entity:', err)
+    }
+  }
 
   React.useEffect(() => {
     fetchEntities()
@@ -77,6 +124,12 @@ export function EntitiesPage() {
         console.error('Failed to fetch entities', err)
         setLoading(false)
       })
+
+    fetchDeals()
+      .then(data => {
+        setDeals(data || [])
+      })
+      .catch(err => console.error('Failed to fetch deals', err))
   }, [])
 
   const filteredEntities = entities.filter((entity) => {
@@ -117,23 +170,26 @@ export function EntitiesPage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="deal">Select Deal (Optional)</Label>
-                <Select>
+                <Select value={formData.dealId} onValueChange={(v) => setFormData({ ...formData, dealId: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a deal" />
                   </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No Deals</SelectItem>
+                      <SelectItem value="none">No Deal</SelectItem>
+                      {deals.map(deal => (
+                        <SelectItem key={deal.id} value={deal.id}>{deal.name}</SelectItem>
+                      ))}
                     </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="name">Entity Name</Label>
-                <Input id="name" placeholder="Enter entity name" />
+                <Input id="name" placeholder="Enter entity name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="type">Entity Type</Label>
-                  <Select>
+                  <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -147,7 +203,7 @@ export function EntitiesPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="jurisdiction">Jurisdiction</Label>
-                  <Select>
+                  <Select value={formData.state} onValueChange={(v) => setFormData({ ...formData, state: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
@@ -162,15 +218,15 @@ export function EntitiesPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="ein">EIN (Optional)</Label>
-                <Input id="ein" placeholder="XX-XXXXXXX" />
+                <Input id="ein" placeholder="XX-XXXXXXX" value={formData.ein} onChange={(e) => setFormData({ ...formData, ein: e.target.value })} />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsCreateOpen(false)}>
-                Create Entity
+              <Button className="bg-primary hover:bg-primary/90" onClick={handleCreateEntity} disabled={isSubmitting || !formData.name}>
+                {isSubmitting ? 'Creating...' : 'Create Entity'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -356,7 +412,7 @@ export function EntitiesPage() {
                         Documents
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteEntity(entity.id); }}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
@@ -422,7 +478,7 @@ export function EntitiesPage() {
                             Documents
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteEntity(entity.id); }}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>

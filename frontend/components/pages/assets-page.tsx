@@ -46,7 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { fetchAssets, fetchDeals } from '@/lib/api-client'
+import { fetchAssets, fetchDeals, createAssets, deleteAssets } from '@/lib/api-client'
 import type { AssetType, SecurityType } from '@/lib/types'
 
 function formatCurrency(amount: number): string {
@@ -86,6 +86,60 @@ export function AssetsPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [filterCount, setFilterCount] = React.useState(2)
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [formData, setFormData] = React.useState<any>({
+    legalName: '',
+    type: 'startup',
+    securityType: 'preferred_stock',
+    industry: '',
+    location: '',
+    totalShares: '',
+    sharePrice: '',
+    dealId: ''
+  })
+
+  const handleCreateAsset = async () => {
+    if (!formData.legalName || !formData.location) return;
+    try {
+      setIsSubmitting(true)
+      const newAsset = await createAssets({
+        legalName: formData.legalName,
+        type: formData.type,
+        securityType: formData.securityType,
+        industry: formData.industry,
+        location: formData.location,
+        totalShares: formData.totalShares ? Number(formData.totalShares) : null,
+        sharePrice: formData.sharePrice ? Number(formData.sharePrice) : null,
+        filesCount: 0
+      })
+      setAssets([newAsset, ...assets])
+      setIsCreateOpen(false)
+      setFormData({
+        legalName: '',
+        type: 'startup',
+        securityType: 'preferred_stock',
+        industry: '',
+        location: '',
+        totalShares: '',
+        sharePrice: '',
+        dealId: ''
+      })
+    } catch (err) {
+      console.error('Failed to create asset:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteAsset = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this asset?')) return;
+    try {
+      await deleteAssets(id)
+      setAssets(assets.filter(a => a.id !== id))
+    } catch (err) {
+      console.error('Failed to delete asset:', err)
+    }
+  }
 
   React.useEffect(() => {
     Promise.all([fetchAssets(), fetchDeals()])
@@ -182,7 +236,7 @@ export function AssetsPage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="deal">Select Deal</Label>
-                <Select>
+                <Select value={formData.dealId} onValueChange={(v) => setFormData({ ...formData, dealId: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a deal" />
                   </SelectTrigger>
@@ -197,12 +251,12 @@ export function AssetsPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="legalName">Legal Name</Label>
-                <Input id="legalName" placeholder="Enter legal name" />
+                <Input id="legalName" placeholder="Enter legal name" value={formData.legalName} onChange={(e) => setFormData({ ...formData, legalName: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="assetType">Asset Type</Label>
-                  <Select>
+                  <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -216,7 +270,7 @@ export function AssetsPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="securityType">Security Type</Label>
-                  <Select>
+                  <Select value={formData.securityType} onValueChange={(v) => setFormData({ ...formData, securityType: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -233,30 +287,30 @@ export function AssetsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="industry">Industry</Label>
-                  <Input id="industry" placeholder="e.g., Technology" />
+                  <Input id="industry" placeholder="e.g., Technology" value={formData.industry} onChange={(e) => setFormData({ ...formData, industry: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="location">Location</Label>
-                  <Input id="location" placeholder="e.g., San Francisco, CA" />
+                  <Input id="location" placeholder="e.g., San Francisco, CA" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="totalShares">Total Shares</Label>
-                  <Input id="totalShares" type="number" placeholder="0" />
+                  <Input id="totalShares" type="number" placeholder="0" value={formData.totalShares} onChange={(e) => setFormData({ ...formData, totalShares: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="sharePrice">Share Price</Label>
-                  <Input id="sharePrice" type="number" placeholder="0.00" />
+                  <Input id="sharePrice" type="number" placeholder="0.00" value={formData.sharePrice} onChange={(e) => setFormData({ ...formData, sharePrice: e.target.value })} />
                 </div>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsCreateOpen(false)}>
-                Create Asset
+              <Button className="bg-primary hover:bg-primary/90" onClick={handleCreateAsset} disabled={isSubmitting || !formData.legalName || !formData.location}>
+                {isSubmitting ? 'Creating...' : 'Create Asset'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -365,7 +419,7 @@ export function AssetsPage() {
                         <Button variant="ghost" size="icon" className="size-8">
                           <Edit className="size-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="size-8 text-destructive">
+                        <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteAsset(asset.id); }}>
                           <Trash2 className="size-4" />
                         </Button>
                       </div>

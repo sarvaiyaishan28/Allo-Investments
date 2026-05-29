@@ -56,43 +56,10 @@ import {
 } from '@/components/ui/select'
 import { useWallet } from '@/components/providers/wallet-provider'
 import { useAuth } from '@/components/providers/auth-provider'
+import { createInvestment, updateDeal } from '@/lib/api-client'
 import type { Deal, DealStatus } from '@/lib/types'
 
-// Mock identities for selection
-const mockIdentities = [
-  {
-    id: '1',
-    firstName: 'Alex',
-    lastName: 'Martinez',
-    email: 'alex@allo.com',
-    type: 'Individual' as const,
-    kycStatus: 'Verified' as const,
-  },
-  {
-    id: '2',
-    firstName: 'Sarah',
-    lastName: 'Mitchell',
-    email: 'sarah.m@example.com',
-    type: 'Individual' as const,
-    kycStatus: 'Verified' as const,
-  },
-  {
-    id: '3',
-    firstName: 'Marcus',
-    lastName: 'Johnson',
-    email: 'marcus.j@company.io',
-    type: 'Entity Representative' as const,
-    kycStatus: 'Pending' as const,
-  },
-  {
-    id: '4',
-    firstName: 'Oakwood Capital',
-    lastName: 'LP',
-    email: 'contact@oakwood.com',
-    type: 'Entity Representative' as const,
-    kycStatus: 'Verified' as const,
-  },
-]
+
 
 const ETH_PRICE_USD = 3500
 
@@ -164,6 +131,13 @@ function InvestDialog({ deal, open, onOpenChange }: { deal: Deal; open: boolean;
   const [txHash, setTxHash] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [copied, setCopied] = React.useState(false)
+  const [identities, setIdentities] = React.useState<any[]>([])
+
+  React.useEffect(() => {
+    import('@/lib/api-client').then(({ fetchIdentities }) => {
+      fetchIdentities().then(setIdentities).catch(console.error)
+    })
+  }, [])
 
   React.useEffect(() => {
     if (open) {
@@ -179,7 +153,7 @@ function InvestDialog({ deal, open, onOpenChange }: { deal: Deal; open: boolean;
   const amountInETH = parsedAmount / ETH_PRICE_USD
   const isValidAmount = parsedAmount >= deal.minimumInvestment
   const isIdentitySelected = selectedIdentity !== ''
-  const selectedIdentityData = mockIdentities.find(i => i.id === selectedIdentity)
+  const selectedIdentityData = identities.find(i => i.id === selectedIdentity)
   const hasInsufficientBalance = isConnected && balanceUSD < parsedAmount
   const estimatedGas = 0.002
   const estimatedGasUSD = estimatedGas * ETH_PRICE_USD
@@ -197,6 +171,32 @@ function InvestDialog({ deal, open, onOpenChange }: { deal: Deal; open: boolean;
 
     try {
       const tx = await sendTransaction(parsedAmount, deal.entityName)
+      
+      // Update backend
+      await createInvestment({
+        id: crypto.randomUUID(),
+        dealId: deal.id,
+        dealName: deal.name,
+        investorId: selectedIdentity,
+        investorName: selectedIdentityData?.firstName ? `${selectedIdentityData.firstName} ${selectedIdentityData.lastName}` : selectedIdentityData?.name || 'Unknown',
+        investorEmail: selectedIdentityData?.email || '',
+        investorType: selectedIdentityData?.type || 'individual',
+        kycStatus: selectedIdentityData?.kycStatus || 'pending',
+        subscriptionAmount: parsedAmount,
+        capitalWired: parsedAmount,
+        managementFee: deal.managementFee || 0,
+        carry: deal.carry || 0,
+        status: 'wired',
+        signedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      })
+
+      // Also update the deal
+      await updateDeal(deal.id, {
+        totalWired: deal.totalWired + parsedAmount,
+        totalSigned: deal.totalSigned + parsedAmount,
+      })
+
       setTxHash(tx.hash)
       setStep('success')
     } catch (err) {
@@ -349,14 +349,14 @@ function InvestDialog({ deal, open, onOpenChange }: { deal: Deal; open: boolean;
               <SelectValue placeholder="Select identity" />
             </SelectTrigger>
             <SelectContent>
-              {mockIdentities.filter(i => i.kycStatus === 'Verified').map((identity) => (
+              {identities.map((identity) => (
                 <SelectItem key={identity.id} value={identity.id}>
                   <div className="flex items-center gap-2">
                     <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium text-primary">
-                      {identity.firstName.charAt(0)}{identity.lastName.charAt(0)}
+                      {identity.firstName?.charAt(0) || identity.name?.charAt(0) || 'U'}{identity.lastName?.charAt(0) || ''}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm">{identity.firstName} {identity.lastName}</span>
+                      <span className="text-sm">{identity.firstName ? `${identity.firstName} ${identity.lastName}` : identity.name}</span>
                       <span className="text-[10px] text-muted-foreground">{identity.type}</span>
                     </div>
                   </div>

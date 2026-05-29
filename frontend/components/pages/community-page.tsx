@@ -32,85 +32,11 @@ const item = {
   show: { opacity: 1, y: 0 }
 }
 
-const upcomingEvents = [
-  {
-    id: 1,
-    date: '20 MAY 2026',
-    title: 'The AI Imperative: Investing IN and WITH AI',
-    location: 'Los Angeles, California',
-    time: 'Wednesday 5:30 PM - 8:00 PM PDT',
-    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=200&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    date: '5 JUN 2026',
-    title: 'Private Markets Roundtable: NYC Edition',
-    location: 'New York City, New York',
-    time: 'Thursday 6:00 PM - 9:00 PM EDT',
-    image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=200&auto=format&fit=crop',
-  }
-]
+const upcomingEvents: any[] = []
 
-const eventVideos = [
-  {
-    id: 1,
-    title: 'Allo Deal Room: Inside Figure AI and the Robotics Revolution',
-    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'QSBS Essentials for Founders, Investors and Advisors',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    title: '2026 Private Markets Outlook',
-    image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=400&auto=format&fit=crop',
-  }
-]
+const eventVideos: any[] = []
 
-const pastEvents = [
-  {
-    id: 1,
-    date: 'Apr 29, 2026',
-    day: 'Wednesday',
-    time: '19:00',
-    title: 'Allo Supper Club - New York City',
-    location: 'In Person - New York City, New York',
-    description: 'A members-only curated evening - gathered around a private table in New York City for dinner, conversation, and the kind of exchange that doesn\'t happen at conferences.',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=200&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    date: 'Apr 22, 2026',
-    day: 'Tuesday',
-    time: '17:00',
-    title: 'AI Infrastructure Deep Dive: From Chips to Cloud',
-    location: 'Virtual - Zoom',
-    description: 'A deep dive into the AI infrastructure stack with leading investors and founders discussing opportunities from semiconductor design to cloud deployment.',
-    image: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=200&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    date: 'Apr 15, 2026',
-    day: 'Tuesday',
-    time: '18:00',
-    title: 'Allo Supper Club - San Francisco',
-    location: 'In Person - San Francisco, California',
-    description: 'An intimate dinner bringing together Allo members in the Bay Area for meaningful conversations about private market investing and emerging technology trends.',
-    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=200&auto=format&fit=crop',
-  },
-  {
-    id: 4,
-    date: 'Apr 8, 2026',
-    day: 'Tuesday',
-    time: '12:00',
-    title: 'Robotics and Physical AI: Investment Landscape 2026',
-    location: 'Virtual - Zoom',
-    description: 'Expert panel covering the rapidly evolving robotics space, from humanoid robots to autonomous drones, and how to evaluate investment opportunities.',
-    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=200&auto=format&fit=crop',
-  }
-]
+const pastEvents: any[] = []
 
 export function CommunityPage() {
   return (
@@ -126,7 +52,7 @@ export function CommunityPage() {
       <motion.div variants={item}>
         <h1 className="text-2xl font-bold">Community</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Register for upcoming webinars, roundtables, and exclusive member meetups. We think you'll love The AI Imperative event in Los Angeles next week!
+          Connect with other investors, access exclusive events, and gain market insights.
         </p>
       </motion.div>
 
@@ -268,45 +194,8 @@ export function CommunityPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-5 rounded-xl border bg-muted/20">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="size-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-sm shrink-0">
-                      FA
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm">Figure AI</h3>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    The overall sentiment among Allo members is strongly bullish regarding Figure AI, with enthusiasm for the company's rapid commercialization of humanoid robots and the BMW partnership. Key themes include the massive TAM in manufacturing and logistics. Some members note the high valuation as a risk factor.
-                  </p>
-
-                  <div className="flex items-center justify-between text-xs font-medium mb-6">
-                    <div className="flex items-center gap-1.5 text-emerald-600">
-                      <ThumbsUp className="size-3.5" />
-                      92% bullish
-                    </div>
-                    <div className="flex items-center gap-1.5 text-red-500">
-                      <ThumbsDown className="size-3.5" />
-                      4% bearish
-                    </div>
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Minus className="size-3.5" />
-                      4% neutral
-                    </div>
-                  </div>
-
-                  <Button variant="outline" className="w-full h-9 text-xs font-medium">
-                    View Figure AI Deal →
-                  </Button>
-                </div>
-                
-                {/* Carousel indicators mock */}
-                <div className="flex justify-center gap-1.5 pt-2">
-                  <div className="size-1.5 rounded-full bg-primary" />
-                  <div className="size-1.5 rounded-full bg-muted" />
-                  <div className="size-1.5 rounded-full bg-muted" />
+                <div className="p-8 text-center text-muted-foreground border rounded-xl bg-muted/20">
+                  <p className="text-sm">No new insights available at the moment.</p>
                 </div>
               </CardContent>
             </Card>

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { DealAdminPage } from '@/components/pages/deal-admin-page'
-import { deals } from '@/lib/mock-data'
+
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -9,18 +9,16 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { id } = await params
   
-  let deal = deals.find((d) => d.id === id)
+  let deal = null
   
-  if (!deal) {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
-      const res = await fetch(`${baseUrl}/deals/${id}`, { cache: 'no-store' })
-      if (res.ok) {
-        deal = await res.json()
-      }
-    } catch (e) {
-      console.error('Failed to fetch deal from backend', e)
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001/api'
+    const res = await fetch(`${baseUrl}/deals/${id}`, { cache: 'no-store' })
+    if (res.ok) {
+      deal = await res.json()
     }
+  } catch (e) {
+    console.error('Failed to fetch deal from backend', e)
   }
 
   // For new deals generated from client if any

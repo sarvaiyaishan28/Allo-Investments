@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
 import { FilesService } from './files.service';
 
 @Controller('api/files')
@@ -13,5 +13,20 @@ export class FilesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.filesService.findOne(id);
+  }
+
+  @Post()
+  create(@Body() data: any) {
+    return this.filesService.create(data);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.filesService.update(id, data);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.filesService.remove(id);
   }
 }
