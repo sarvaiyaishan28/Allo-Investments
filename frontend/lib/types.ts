@@ -60,6 +60,8 @@ export interface Investment {
   capitalWired: number
   managementFee: number
   carry: number
+  txHash?: string
+  chain?: string
   createdAt: string
   signedAt?: string
 }

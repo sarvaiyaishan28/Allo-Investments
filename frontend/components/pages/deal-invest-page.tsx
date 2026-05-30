@@ -187,6 +187,8 @@ function InvestDialog({ deal, open, onOpenChange }: { deal: Deal; open: boolean;
         managementFee: deal.managementFee || 0,
         carry: deal.carry || 0,
         status: 'wired',
+        txHash: tx.hash,
+        chain: network?.id || 'ethereum',
         signedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
       })

@@ -86,6 +86,17 @@ function getStatusConfig(status: InvestmentStatus) {
   return config[status] || { label: status, className: 'bg-muted text-muted-foreground', icon: Clock }
 }
 
+function getBlockExplorerUrl(chain: string, txHash: string) {
+  const explorers: Record<string, string> = {
+    'ethereum': 'https://etherscan.io/tx/',
+    'polygon': 'https://polygonscan.com/tx/',
+    'arbitrum': 'https://arbiscan.io/tx/',
+    'optimism': 'https://optimistic.etherscan.io/tx/',
+    'base': 'https://basescan.org/tx/'
+  }
+  return explorers[chain] ? `${explorers[chain]}${txHash}` : null
+}
+
 const statusFilters: { id: InvestmentStatus | 'all'; label: string }[] = [
   { id: 'all', label: 'All Status' },
   { id: 'signed', label: 'Signed' },
@@ -166,6 +177,29 @@ function InvestmentDetailDialog({ investment, deal }: { investment: Investment, 
           <span className="text-sm text-muted-foreground">Investor Type</span>
           <Badge variant="outline" className="capitalize text-xs">{investment.investorType}</Badge>
         </div>
+
+        {/* Transaction */}
+        {investment.txHash && (
+          <div className="flex items-center justify-between py-2 border-b">
+            <span className="text-sm text-muted-foreground">Transaction</span>
+            <div className="flex items-center gap-2">
+              {investment.chain && (
+                <Badge variant="secondary" className="text-[10px] uppercase">
+                  {investment.chain}
+                </Badge>
+              )}
+              <a 
+                href={investment.chain ? getBlockExplorerUrl(investment.chain, investment.txHash) || '#' : '#'} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-mono text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                {investment.txHash.slice(0, 6)}...{investment.txHash.slice(-4)}
+                <ExternalLink className="size-3" />
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Dates */}
         <div className="flex items-center justify-between py-2 border-b">

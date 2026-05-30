@@ -265,7 +265,7 @@ export async function deleteNotifications(id: string) {
     }
 
 export async function createLedgerEntries(data: any) {
-  return await apiFetch(`/ledgerentries`, {
+  return await apiFetch(`/ledger`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -273,7 +273,7 @@ export async function createLedgerEntries(data: any) {
     }
 
 export async function updateLedgerEntries(id: string, data: any) {
-  return await apiFetch(`/ledgerentries/${id}`, {
+  return await apiFetch(`/ledger/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -281,7 +281,7 @@ export async function updateLedgerEntries(id: string, data: any) {
     }
 
 export async function deleteLedgerEntries(id: string) {
-  return await apiFetch(`/ledgerentries/${id}`, {
+  return await apiFetch(`/ledger/${id}`, {
     method: 'DELETE',
   });
     }
